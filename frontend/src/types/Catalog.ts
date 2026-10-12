@@ -8,13 +8,40 @@ export interface CatalogCard {
   imageUrl: string
 }
 
-export interface CatalogPageResponse {
+export type CatalogSort = 'name-asc' | 'name-desc'
+
+/** Estado da busca na URL do catálogo. {@link page} começa em 1. */
+export interface CatalogSearch {
+  q?: string
+  set?: string
+  rarity?: string
+  type?: string
+  sort?: CatalogSort
+  page?: number
+}
+
+export interface CatalogPage {
   content: CatalogCard[]
   page: number
   size: number
   totalElements: number
   totalPages: number
 }
+
+export interface CatalogPageResponse {
+  content: CatalogCardResponse[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+export interface CatalogFilters {
+  sets: string[]
+  rarities: string[]
+  types: string[]
+}
+
 export interface CatalogCardResponse {
   externalId: string
   conceptualId: string

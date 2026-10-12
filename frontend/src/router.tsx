@@ -7,6 +7,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { CatalogPage } from '@/pages/CatalogPage'
 import { NotFound, RootLayout } from '@/routes/RootLayout'
+import { parseCatalogSearch } from '@/utils/catalogSearch'
 import {
   createRootRoute,
   createRoute,
@@ -33,6 +34,7 @@ const indexRoute = createRoute({
 const catalogRoute = createRoute({
   getParentRoute: () => siteLayoutRoute,
   path: '/catalogo/$game',
+  validateSearch: parseCatalogSearch,
   component: CatalogPage,
 })
 

@@ -1,8 +1,10 @@
 package com.pitcc.controller;
 
 import com.pitcc.dto.CatalogCardResponse;
+import com.pitcc.dto.CatalogFiltersResponse;
+import com.pitcc.dto.CatalogPageResponse;
+import com.pitcc.dto.CatalogSearchRequest;
 import com.pitcc.service.CatalogSearchService;
-import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,8 +22,22 @@ public class CatalogController {
   }
 
   @GetMapping("/{game}/cards")
-  public List<CatalogCardResponse> search(@PathVariable String game, @RequestParam("q") String query) {
-    return catalogSearchService.search(game, query);
+  public CatalogPageResponse<CatalogCardResponse> search(
+      @PathVariable String game,
+      @RequestParam(required = false) String q,
+      @RequestParam(required = false) String set,
+      @RequestParam(required = false) String rarity,
+      @RequestParam(required = false) String type,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer size,
+      @RequestParam(required = false) String sort) {
+    return catalogSearchService.search(
+        game, new CatalogSearchRequest(q, set, rarity, type, page, size, sort));
+  }
+
+  @GetMapping("/{game}/filters")
+  public CatalogFiltersResponse filters(@PathVariable String game) {
+    return catalogSearchService.filters(game);
   }
 
   @GetMapping("/{game}/cards/by-external-id")

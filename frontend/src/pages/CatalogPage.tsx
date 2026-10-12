@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useParams } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { CatalogCard } from '@/components/catalog/CatalogCard'
 import { AddToCollectionModal } from '@/components/catalog/AddToCollectionModal'
-import type { CatalogCard as CatalogCardData } from '@/types/Catalog'
-import { searchCatalogCards } from '@/services/catalogApi'
-
-const PAGE_SIZE = 10
+import type {
+  CatalogCard as CatalogCardData,
+  CatalogFilters,
+  CatalogPage as CatalogPageData,
+  CatalogSearch,
+} from '@/types/Catalog'
+import { fetchCatalogFilters, searchCatalogCards } from '@/services/catalogApi'
 
 const gameNames: Record<string, string> = {
   pokemon: 'Pokémon',
@@ -15,108 +18,160 @@ const gameNames: Record<string, string> = {
   digimon: 'Digimon',
 }
 
-const futureFilters = ['Tipo', 'Idioma', 'Condição', 'Preço', 'Disponibilidade']
+const supportedGames = ['pokemon', 'magic', 'yugioh']
+
+const typeLabels: Record<string, string> = {
+  POKEMON: 'Pokémon',
+  TRAINER: 'Treinador',
+  ENERGY: 'Energia',
+  MONSTER: 'Monstro',
+  SPELL: 'Magia',
+  TRAP: 'Armadilha',
+  LAND: 'Terreno',
+  CREATURE: 'Criatura',
+  ARTIFACT: 'Artefato',
+  ENCHANTMENT: 'Encantamento',
+  PLANESWALKER: 'Planeswalker',
+  BATTLE: 'Batalha',
+  INSTANT: 'Mágica instantânea',
+  SORCERY: 'Feitiço',
+  KINDRED: 'Kindred',
+}
+
+const futureFilters = ['Idioma', 'Condição', 'Preço', 'Disponibilidade']
+
+const emptyFilters: CatalogFilters = { sets: [], rarities: [], types: [] }
+
+type FilterKey = 'q' | 'set' | 'rarity' | 'type'
 
 export function CatalogPage() {
   const { game } = useParams({ from: '/site-layout/catalogo/$game' })
-  const [search, setSearch] = useState('')
-  const [rarity, setRarity] = useState('all')
-  const [edition, setEdition] = useState('all')
-  const [sort, setSort] = useState('name-asc')
-  const [page, setPage] = useState(1)
+  return <CatalogView key={game} game={game} />
+}
+
+function CatalogView({ game }: { game: string }) {
+  const search = useSearch({ from: '/site-layout/catalogo/$game' })
+  const navigate = useNavigate({ from: '/catalogo/$game' })
+  const supportedGame = supportedGames.includes(game)
+  const { q, set, rarity, type, sort, page } = search
+  const currentPage = page ?? 1
+
+  const [searchInput, setSearchInput] = useState(q ?? '')
+  const [syncedQuery, setSyncedQuery] = useState(q)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState<CatalogCardData | null>(null)
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [searchResult, setSearchResult] = useState<{
+  const [filters, setFilters] = useState<CatalogFilters | null>(null)
+  const [attempt, setAttempt] = useState(0)
+  const [result, setResult] = useState<{
     key: string
-    cards: CatalogCardData[]
-    error: string | null
+    data: CatalogPageData | null
   } | null>(null)
-  const supportedGame = ['pokemon', 'magic', 'yugioh'].includes(game)
+
+  if (q !== syncedQuery) {
+    setSyncedQuery(q)
+    setSearchInput(q ?? '')
+  }
+
+  function updateSearch(patch: Partial<CatalogSearch>) {
+    navigate({ search: (prev) => ({ ...prev, ...patch, page: undefined }) })
+  }
 
   useEffect(() => {
+    const next = searchInput.trim() ? searchInput : undefined
+    if (next === q) return
     const timer = window.setTimeout(
-      () => setDebouncedSearch(search.trim()),
+      () =>
+        navigate({
+          search: (prev) => ({ ...prev, q: next, page: undefined }),
+          replace: true,
+        }),
       350,
     )
     return () => window.clearTimeout(timer)
-  }, [search])
+  }, [searchInput, q, navigate])
 
   useEffect(() => {
-    if (!debouncedSearch || !supportedGame) return
+    if (!supportedGame) return
     let active = true
-    const key = `${game}:${debouncedSearch}`
-    searchCatalogCards(game, debouncedSearch)
-      .then((cards) => {
-        if (active) setSearchResult({ key, cards, error: null })
+    fetchCatalogFilters(game)
+      .then((data) => {
+        if (active) setFilters(data)
       })
       .catch(() => {
-        if (active)
-          setSearchResult({
-            key,
-            cards: [],
-            error:
-              'Não foi possível consultar o catálogo. Verifique a conexão com a API e tente novamente.',
-          })
+        if (active) setFilters(emptyFilters)
       })
     return () => {
       active = false
     }
-  }, [game, debouncedSearch, supportedGame])
+  }, [game, supportedGame])
 
-  const searchKey = `${game}:${search.trim()}`
-  const isSearching = Boolean(search.trim()) && supportedGame
-  const isLoading =
-    isSearching &&
-    (search.trim() !== debouncedSearch || searchResult?.key !== searchKey)
-  const searchError = isSearching && !isLoading ? searchResult?.error : null
+  const requestKey = JSON.stringify([q, set, rarity, type, sort, page, attempt])
 
-  const cards = useMemo(() => {
-    if (!isSearching) return []
+  useEffect(() => {
+    if (!supportedGame) return
+    let active = true
+    searchCatalogCards(game, { q, set, rarity, type, sort, page })
+      .then((data) => {
+        if (active) setResult({ key: requestKey, data })
+      })
+      .catch(() => {
+        if (active) setResult({ key: requestKey, data: null })
+      })
+    return () => {
+      active = false
+    }
+  }, [game, supportedGame, requestKey, q, set, rarity, type, sort, page])
 
-    return searchResult?.key === searchKey ? searchResult.cards : []
-  }, [isSearching, searchKey, searchResult])
-
-  const editions = useMemo(
-    () => [...new Set(cards.map((card) => card.edition))].sort(),
-    [cards],
+  const isLoading = supportedGame && result?.key !== requestKey
+  const data = isLoading ? null : result?.data
+  const loadError = supportedGame && !isLoading && !data
+  const totalPages = data?.totalPages ?? 0
+  const outOfRange = Boolean(
+    data && data.totalElements > 0 && !data.content.length,
   )
 
-  const rarities = useMemo(
-    () => [...new Set(cards.map((card) => card.officialRarity))].sort(),
-    [cards],
+  const options = filters ?? emptyFilters
+  const setOptions = withSelected(
+    options.sets.map((item) => ({ value: item, label: item })),
+    set,
+  )
+  const rarityOptions = withSelected(
+    options.rarities.map((item) => ({ value: item, label: item })),
+    rarity,
+  )
+  const typeOptions = withSelected(
+    options.types.map((item) => ({
+      value: item,
+      label: typeLabels[item] ?? item,
+    })),
+    type,
   )
 
-  const filtered = useMemo(() => {
-    const result = cards.filter(
-      (card) =>
-        (rarity === 'all' || card.officialRarity === rarity) &&
-        (edition === 'all' || card.edition === edition),
-    )
-
-    result.sort((a, b) =>
-      sort === 'name-desc'
-        ? b.name.localeCompare(a.name, 'pt-BR')
-        : a.name.localeCompare(b.name, 'pt-BR'),
-    )
-    return result
-  }, [cards, rarity, edition, sort])
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const currentPage = Math.min(page, totalPages)
-  const visibleCards = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  )
+  const activeFilters: { key: FilterKey; label: string }[] = []
+  if (q) activeFilters.push({ key: 'q', label: `Busca: “${q.trim()}”` })
+  if (set) activeFilters.push({ key: 'set', label: `Coleção: ${set}` })
+  if (rarity)
+    activeFilters.push({ key: 'rarity', label: `Raridade: ${rarity}` })
+  if (type)
+    activeFilters.push({
+      key: 'type',
+      label: `Tipo: ${typeLabels[type] ?? type}`,
+    })
+  const hasFilters = activeFilters.length > 0
 
   function clearFilters() {
-    setSearch('')
-    setRarity('all')
-    setEdition('all')
-    setPage(1)
+    navigate({ search: (prev) => ({ sort: prev.sort }) })
+  }
+
+  function goToPage(number: number) {
+    navigate({
+      search: (prev) => ({ ...prev, page: number > 1 ? number : undefined }),
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const gameName = gameNames[game] ?? game
+  const total = data?.totalElements ?? 0
 
   return (
     <main className="min-h-screen bg-[#FAFBFE] pb-12 text-[#171443]">
@@ -156,7 +211,8 @@ export function CatalogPage() {
             aria-expanded={filtersOpen}
             className="w-full rounded-lg border border-[#dedcf3] bg-white px-4 py-3 text-left text-sm font-semibold text-primary-900"
           >
-            {filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
+            {filtersOpen ? 'Ocultar filtros' : 'Filtros'}
+            {hasFilters ? ` (${activeFilters.length})` : ''}
           </button>
         </div>
 
@@ -167,13 +223,15 @@ export function CatalogPage() {
           >
             <div className="mb-4 flex items-center justify-between gap-2">
               <h2 className="font-display text-lg font-bold">Filtros</h2>
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="text-xs font-semibold text-primary-900 underline underline-offset-2"
-              >
-                Limpar filtros
-              </button>
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="text-xs font-semibold text-primary-900 underline underline-offset-2"
+                >
+                  Limpar filtros
+                </button>
+              )}
             </div>
 
             <label
@@ -185,70 +243,36 @@ export function CatalogPage() {
             <input
               id="catalog-search"
               type="search"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value)
-                setPage(1)
-                setEdition('all')
-                setRarity('all')
-              }}
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Buscar carta no catálogo..."
               className="mb-4 w-full rounded-lg border border-[#e1def5] bg-white px-3 py-3 text-sm outline-none focus:border-primary-900 focus:ring-2 focus:ring-primary-100"
             />
 
-            <details className="mb-2 rounded-lg border border-[#e5e2f4]" open>
-              <summary className="cursor-pointer px-3 py-3 text-sm font-semibold">
-                Coleção
-              </summary>
-              <div className="border-t border-[#eeeafb] px-3 pb-3 pt-2">
-                <label htmlFor="catalog-edition" className="sr-only">
-                  Filtrar por coleção
-                </label>
-                <select
-                  id="catalog-edition"
-                  value={edition}
-                  onChange={(event) => {
-                    setEdition(event.target.value)
-                    setPage(1)
-                  }}
-                  className="w-full rounded-lg border border-[#e5e2f4] bg-white px-2 py-2 text-sm"
-                >
-                  <option value="all">Todas as coleções</option>
-                  {editions.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </details>
-
-            <details className="mb-2 rounded-lg border border-[#e5e2f4]" open>
-              <summary className="cursor-pointer px-3 py-3 text-sm font-semibold">
-                Raridade
-              </summary>
-              <div className="border-t border-[#eeeafb] px-3 pb-3 pt-2">
-                <label htmlFor="catalog-rarity" className="sr-only">
-                  Filtrar por raridade
-                </label>
-                <select
-                  id="catalog-rarity"
-                  value={rarity}
-                  onChange={(event) => {
-                    setRarity(event.target.value)
-                    setPage(1)
-                  }}
-                  className="w-full rounded-lg border border-[#e5e2f4] bg-white px-2 py-2 text-sm"
-                >
-                  <option value="all">Todas as raridades</option>
-                  {rarities.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </details>
+            <FilterGroup
+              id="catalog-set"
+              title="Coleção"
+              allLabel="Todas as coleções"
+              value={set}
+              options={setOptions}
+              onChange={(value) => updateSearch({ set: value })}
+            />
+            <FilterGroup
+              id="catalog-rarity"
+              title="Raridade"
+              allLabel="Todas as raridades"
+              value={rarity}
+              options={rarityOptions}
+              onChange={(value) => updateSearch({ rarity: value })}
+            />
+            <FilterGroup
+              id="catalog-type"
+              title="Tipo"
+              allLabel="Todos os tipos"
+              value={type}
+              options={typeOptions}
+              onChange={(value) => updateSearch({ type: value })}
+            />
 
             {futureFilters.map((filter) => (
               <div
@@ -264,16 +288,17 @@ export function CatalogPage() {
 
           <section className="min-w-0" aria-label="Resultados do catálogo">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm font-semibold">
-                <span className="underline decoration-primary-900 underline-offset-2">
-                  {(isLoading || searchError
-                    ? 0
-                    : filtered.length
-                  ).toLocaleString('pt-BR')}
-                </span>{' '}
-                {filtered.length === 1
-                  ? 'carta encontrada'
-                  : 'cartas encontradas'}
+              <p className="text-sm font-semibold" aria-live="polite">
+                {isLoading ? (
+                  'Buscando cartas...'
+                ) : data ? (
+                  <>
+                    <span className="underline decoration-primary-900 underline-offset-2">
+                      {total.toLocaleString('pt-BR')}
+                    </span>{' '}
+                    {total === 1 ? 'carta encontrada' : 'cartas encontradas'}
+                  </>
+                ) : null}
               </p>
               <label
                 className="flex items-center gap-2 text-xs text-[#514b7e]"
@@ -282,11 +307,15 @@ export function CatalogPage() {
                 <span className="hidden sm:inline">Ordenar por:</span>
                 <select
                   id="catalog-sort"
-                  value={sort}
-                  onChange={(event) => {
-                    setSort(event.target.value)
-                    setPage(1)
-                  }}
+                  value={sort ?? 'name-asc'}
+                  onChange={(event) =>
+                    updateSearch({
+                      sort:
+                        event.target.value === 'name-desc'
+                          ? 'name-desc'
+                          : undefined,
+                    })
+                  }
                   className="rounded-lg border border-[#e1def5] bg-white px-3 py-2 text-xs text-[#171443] sm:text-sm"
                 >
                   <option value="name-asc">Nome: A–Z</option>
@@ -295,39 +324,102 @@ export function CatalogPage() {
               </label>
             </div>
 
-            {isLoading ? (
+            {hasFilters && (
+              <ul
+                aria-label="Filtros ativos"
+                className="mb-3 flex flex-wrap items-center gap-2"
+              >
+                {activeFilters.map((filter) => (
+                  <li key={filter.key}>
+                    <button
+                      type="button"
+                      onClick={() => updateSearch({ [filter.key]: undefined })}
+                      aria-label={`Remover filtro ${filter.label}`}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-900 hover:bg-primary-100/70"
+                    >
+                      {filter.label}
+                      <span aria-hidden="true">×</span>
+                    </button>
+                  </li>
+                ))}
+                <li>
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="text-xs font-semibold text-primary-900 underline underline-offset-2"
+                  >
+                    Limpar filtros
+                  </button>
+                </li>
+              </ul>
+            )}
+
+            {!supportedGame ? (
+              <EmptyState
+                title="Catálogo em breve"
+                message={`O catálogo de ${gameName} ainda não está disponível.`}
+              />
+            ) : isLoading ? (
               <div
                 role="status"
-                className="rounded-xl border bg-white px-6 py-16 text-center"
+                aria-label="Carregando cartas"
+                className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5"
               >
-                Buscando cartas no catálogo...
+                {Array.from({ length: 10 }, (_, index) => (
+                  <div
+                    key={index}
+                    className="animate-pulse overflow-hidden rounded-xl border border-[#eeeafb] bg-white"
+                  >
+                    <div className="aspect-[4/5] bg-neutral-100" />
+                    <div className="space-y-2 p-3.5">
+                      <div className="h-3.5 w-3/4 rounded bg-neutral-100" />
+                      <div className="h-3 w-1/2 rounded bg-neutral-100" />
+                      <div className="h-5 w-16 rounded-full bg-neutral-100" />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ) : searchError ? (
+            ) : loadError ? (
               <div
                 role="alert"
-                className="rounded-xl border border-red-200 bg-white px-6 py-12 text-center text-red-700"
+                className="rounded-xl border border-red-200 bg-white px-6 py-12 text-center"
               >
-                {searchError}
-              </div>
-            ) : visibleCards.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-[#dcd8ed] bg-white px-6 py-16 text-center">
-                <h3 className="font-display text-lg font-bold">
-                  Nenhuma carta encontrada
+                <h3 className="font-display text-lg font-bold text-red-700">
+                  Não foi possível carregar as cartas
                 </h3>
                 <p className="mt-2 text-sm text-neutral-500">
-                  Tente alterar os filtros ou escolha outro jogo.
+                  Ocorreu um problema ao buscar o catálogo. Tente novamente.
                 </p>
                 <button
                   type="button"
-                  onClick={clearFilters}
+                  onClick={() => setAttempt((value) => value + 1)}
                   className="mt-5 rounded-lg bg-primary-900 px-5 py-2.5 text-sm font-semibold text-white"
                 >
-                  Limpar filtros
+                  Tentar novamente
                 </button>
               </div>
+            ) : outOfRange ? (
+              <EmptyState
+                title="Página não encontrada"
+                message="Essa página não existe para a busca atual."
+                action={{
+                  label: 'Ir para a primeira página',
+                  onClick: () => goToPage(1),
+                }}
+              />
+            ) : !data?.content.length ? (
+              <EmptyState
+                title="Nenhuma carta encontrada"
+                message="Não encontramos cartas correspondentes à sua busca ou aos filtros selecionados."
+                action={
+                  hasFilters
+                    ? { label: 'Limpar filtros', onClick: clearFilters }
+                    : undefined
+                }
+              />
             ) : (
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
-                {visibleCards.map((card) => (
+                {data.content.map((card) => (
                   <CatalogCard
                     key={card.id}
                     card={card}
@@ -337,7 +429,7 @@ export function CatalogPage() {
               </div>
             )}
 
-            {!isLoading && !searchError && totalPages > 1 && (
+            {data && !outOfRange && totalPages > 1 && (
               <nav
                 aria-label="Paginação do catálogo"
                 className="mt-7 flex flex-wrap items-center justify-center gap-2"
@@ -345,31 +437,37 @@ export function CatalogPage() {
                 <button
                   type="button"
                   disabled={currentPage === 1}
-                  onClick={() => setPage((value) => Math.max(1, value - 1))}
+                  onClick={() => goToPage(currentPage - 1)}
                   className="rounded-lg border border-[#e1def5] bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Anterior
                 </button>
-                {Array.from(
-                  { length: totalPages },
-                  (_, index) => index + 1,
-                ).map((number) => (
-                  <button
-                    key={number}
-                    type="button"
-                    aria-current={number === currentPage ? 'page' : undefined}
-                    onClick={() => setPage(number)}
-                    className={`size-9 rounded-lg text-sm font-semibold ${number === currentPage ? 'bg-primary-900 text-white' : 'border border-[#e1def5] bg-white'}`}
-                  >
-                    {number}
-                  </button>
-                ))}
+                {pageItems(currentPage, totalPages).map((item, index) =>
+                  item === 'gap' ? (
+                    <span
+                      key={`gap-${index}`}
+                      aria-hidden="true"
+                      className="px-1 text-sm text-neutral-500"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      type="button"
+                      aria-current={item === currentPage ? 'page' : undefined}
+                      aria-label={`Página ${item}`}
+                      onClick={() => goToPage(item)}
+                      className={`size-9 rounded-lg text-sm font-semibold ${item === currentPage ? 'bg-primary-900 text-white' : 'border border-[#e1def5] bg-white'}`}
+                    >
+                      {item}
+                    </button>
+                  ),
+                )}
                 <button
                   type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() =>
-                    setPage((value) => Math.min(totalPages, value + 1))
-                  }
+                  disabled={currentPage >= totalPages}
+                  onClick={() => goToPage(currentPage + 1)}
                   className="rounded-lg border border-[#e1def5] bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Próxima
@@ -388,5 +486,96 @@ export function CatalogPage() {
         />
       )}
     </main>
+  )
+}
+
+type Option = { value: string; label: string }
+
+function FilterGroup({
+  id,
+  title,
+  allLabel,
+  value,
+  options,
+  onChange,
+}: {
+  id: string
+  title: string
+  allLabel: string
+  value: string | undefined
+  options: Option[]
+  onChange: (value: string | undefined) => void
+}) {
+  return (
+    <details className="mb-2 rounded-lg border border-[#e5e2f4]" open>
+      <summary className="cursor-pointer px-3 py-3 text-sm font-semibold">
+        {title}
+        {value ? ` (1)` : ''}
+      </summary>
+      <div className="border-t border-[#eeeafb] px-3 pb-3 pt-2">
+        <label htmlFor={id} className="sr-only">
+          Filtrar por {title.toLowerCase()}
+        </label>
+        <select
+          id={id}
+          value={value ?? ''}
+          onChange={(event) => onChange(event.target.value || undefined)}
+          disabled={!options.length && !value}
+          className="w-full rounded-lg border border-[#e5e2f4] bg-white px-2 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <option value="">{allLabel}</option>
+          {options.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </details>
+  )
+}
+
+function EmptyState({
+  title,
+  message,
+  action,
+}: {
+  title: string
+  message: string
+  action?: { label: string; onClick: () => void }
+}) {
+  return (
+    <div className="rounded-xl border border-dashed border-[#dcd8ed] bg-white px-6 py-16 text-center">
+      <h3 className="font-display text-lg font-bold">{title}</h3>
+      <p className="mt-2 text-sm text-neutral-500">{message}</p>
+      {action && (
+        <button
+          type="button"
+          onClick={action.onClick}
+          className="mt-5 rounded-lg bg-primary-900 px-5 py-2.5 text-sm font-semibold text-white"
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  )
+}
+
+function withSelected(options: Option[], selected: string | undefined) {
+  if (!selected || options.some((item) => item.value === selected))
+    return options
+  return [{ value: selected, label: selected }, ...options]
+}
+
+function pageItems(current: number, total: number): (number | 'gap')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1)
+  const pages = [1, current - 1, current, current + 1, total]
+    .filter((number) => number >= 1 && number <= total)
+    .filter((number, index, list) => list.indexOf(number) === index)
+    .sort((a, b) => a - b)
+  return pages.flatMap((number, index) =>
+    index > 0 && number - pages[index - 1] > 1
+      ? (['gap', number] as const)
+      : [number],
   )
 }
