@@ -29,18 +29,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 class UserServiceTest {
 
   @Mock private UserRepository userRepository;
+  @Mock private UsernameGenerator usernameGenerator;
 
   private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
   private UserService userService;
 
   @BeforeEach
   void setUp() {
-    userService = new UserService(userRepository, passwordEncoder);
+    userService = new UserService(userRepository, passwordEncoder, usernameGenerator);
   }
 
   @Test
   void shouldPersistNormalizedUserWithHashedPasswordAndUserRole() {
     when(userRepository.existsByEmail("joao@email.com")).thenReturn(false);
+    when(usernameGenerator.generate("João Silva")).thenReturn("joao.silva");
     when(userRepository.save(any(User.class)))
         .thenAnswer(
             invocation -> {
@@ -61,7 +63,9 @@ class UserServiceTest {
     assertNotEquals("Senha@123", saved.getPasswordHash());
     assertTrue(passwordEncoder.matches("Senha@123", saved.getPasswordHash()));
     assertEquals(UserRole.USER, saved.getRole());
+    assertEquals("joao.silva", saved.getUsername());
     assertEquals("abc123", response.id());
+    assertEquals("joao.silva", response.username());
     assertEquals("joao@email.com", response.email());
     assertEquals(UserRole.USER, response.role());
   }
@@ -79,11 +83,26 @@ class UserServiceTest {
 
   @Test
   void shouldTranslateConcurrentDuplicateKeyIntoEmailConflict() {
-    when(userRepository.existsByEmail("joao@email.com")).thenReturn(false);
+    when(userRepository.existsByEmail("joao@email.com")).thenReturn(false, true);
+    when(usernameGenerator.generate("João Silva")).thenReturn("joao.silva");
     when(userRepository.save(any(User.class))).thenThrow(new DuplicateKeyException("email"));
 
     assertThrows(
         EmailAlreadyRegisteredException.class,
         () -> userService.register(new CreateUserRequest("João Silva", "joao@email.com", "Senha@123")));
+  }
+
+  @Test
+  void shouldRetryWithAnotherUsernameWhenConcurrentSignupTookIt() {
+    when(userRepository.existsByEmail("joao@email.com")).thenReturn(false);
+    when(usernameGenerator.generate("João Silva")).thenReturn("joao.silva", "joao.silva2");
+    when(userRepository.save(any(User.class)))
+        .thenThrow(new DuplicateKeyException("username"))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    UserResponse response =
+        userService.register(new CreateUserRequest("João Silva", "joao@email.com", "Senha@123"));
+
+    assertEquals("joao.silva2", response.username());
   }
 }

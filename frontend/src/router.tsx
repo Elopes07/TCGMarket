@@ -6,6 +6,9 @@ import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { CatalogPage } from '@/pages/CatalogPage'
+import { ProfileEditPage } from '@/pages/ProfileEditPage'
+import { ProfilePage } from '@/pages/ProfilePage'
+import { PublicProfilePage } from '@/pages/PublicProfilePage'
 import { NotFound, RootLayout } from '@/routes/RootLayout'
 import { parseCatalogSearch } from '@/utils/catalogSearch'
 import {
@@ -38,6 +41,32 @@ const catalogRoute = createRoute({
   component: CatalogPage,
 })
 
+const profileRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: '/perfil',
+  component: () => (
+    <RequireAuth>
+      <ProfilePage />
+    </RequireAuth>
+  ),
+})
+
+const profileEditRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: '/perfil/editar',
+  component: () => (
+    <RequireAuth>
+      <ProfileEditPage />
+    </RequireAuth>
+  ),
+})
+
+const publicProfileRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: '/jogadores/$username',
+  component: PublicProfilePage,
+})
+
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/cadastro',
@@ -67,7 +96,13 @@ const designSystemRoute = createRoute({
 })
 
 const routeTree = rootRoute.addChildren([
-  siteLayoutRoute.addChildren([indexRoute, catalogRoute]),
+  siteLayoutRoute.addChildren([
+    indexRoute,
+    catalogRoute,
+    profileRoute,
+    profileEditRoute,
+    publicProfileRoute,
+  ]),
   registerRoute,
   loginRoute,
   adminRoute,
@@ -79,5 +114,11 @@ export const router = createRouter({ routeTree })
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
+  }
+}
+
+declare module '@tanstack/history' {
+  interface HistoryState {
+    profileSaved?: boolean
   }
 }

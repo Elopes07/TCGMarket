@@ -57,6 +57,7 @@ class AuthControllerTest {
                 new UserResponse(
                     "abc123",
                     "João Silva",
+                    "joao.silva",
                     "joao@email.com",
                     UserRole.USER,
                     Instant.parse("2026-10-02T18:00:00Z"))));
@@ -136,6 +137,7 @@ class AuthControllerTest {
             new UserResponse(
                 "abc123",
                 "João Silva",
+                "joao.silva",
                 "joao@email.com",
                 UserRole.ADMIN,
                 Instant.parse("2026-10-02T18:00:00Z")));

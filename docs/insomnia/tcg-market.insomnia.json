@@ -17,12 +17,11 @@
       "parentId": "wrk_tcgmarket",
       "name": "Base Environment",
       "data": {
-        "base_url": "http://localhost:8080"
+        "base_url": "http://localhost:8080",
+        "token": ""
       },
       "dataPropertyOrder": {
-        "&": [
-          "base_url"
-        ]
+        "&": ["base_url", "token"]
       },
       "color": null,
       "isPrivate": false,
@@ -106,6 +105,97 @@
       ],
       "authentication": {},
       "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_own_profile",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Meu perfil",
+      "description": "Exige token. Devolve os dados editáveis do perfil e o e-mail, que só o dono vê.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/users/me/profile",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_update_profile",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Editar meu perfil",
+      "description": "Exige token. Substitui todos os campos editáveis; e-mail, senha e papel enviados no corpo são ignorados. Username em uso devolve 409 no campo username.",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/users/me/profile",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Ash Ketchum\",\n  \"username\": \"ash.ketchum\",\n  \"bio\": \"Quero ser um mestre Pokémon.\",\n  \"city\": \"Pallet\",\n  \"state\": \"SP\",\n  \"favoriteGames\": [\"POKEMON\"],\n  \"links\": [\"https://instagram.com/ash\"]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": 3,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_public_profile",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Perfil público",
+      "description": "Não exige token. Nunca devolve e-mail, id ou papel; administradores aparecem só com o selo administrator.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/users/ash.ketchum/profile",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,

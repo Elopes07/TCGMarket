@@ -16,12 +16,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
+  private static final int USERNAME_ATTEMPTS = 3;
+
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final UsernameGenerator usernameGenerator;
 
-  public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+  public UserService(
+      UserRepository userRepository,
+      PasswordEncoder passwordEncoder,
+      UsernameGenerator usernameGenerator) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
+    this.usernameGenerator = usernameGenerator;
   }
 
   public UserResponse register(CreateUserRequest request) {
@@ -37,10 +44,19 @@ public class UserService {
     user.setRole(UserRole.USER);
     user.setRegistrationDate(Instant.now());
 
-    try {
-      return UserResponses.toUserResponse(userRepository.save(user));
-    } catch (DuplicateKeyException exception) {
-      throw new EmailAlreadyRegisteredException(email);
+    for (int attempt = 1; ; attempt++) {
+      user.setUsername(usernameGenerator.generate(user.getName()));
+      try {
+        return UserResponses.toUserResponse(userRepository.save(user));
+      } catch (DuplicateKeyException exception) {
+        // A colisão pode ser do e-mail ou do username gerado por um cadastro simultâneo.
+        if (userRepository.existsByEmail(email)) {
+          throw new EmailAlreadyRegisteredException(email);
+        }
+        if (attempt == USERNAME_ATTEMPTS) {
+          throw exception;
+        }
+      }
     }
   }
 

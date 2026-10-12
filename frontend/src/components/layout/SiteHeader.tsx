@@ -94,6 +94,16 @@ export function SiteHeader({ onSoon: soon }: Props) {
                   <p className="truncate px-2 pb-2 text-xs text-neutral-500">
                     {user.email}
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      navigate({ to: '/perfil' })
+                    }}
+                    className="w-full rounded-lg px-2 py-2 text-left text-sm font-medium hover:bg-primary-100"
+                  >
+                    Meu perfil
+                  </button>
                   {hasRole(user, 'ADMIN') && (
                     <button
                       type="button"
