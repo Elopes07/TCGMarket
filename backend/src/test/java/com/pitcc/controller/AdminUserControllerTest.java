@@ -237,6 +237,6 @@ class AdminUserControllerTest {
 
   private static UserResponse response(String id, UserRole role) {
     return new UserResponse(
-        id, "Nome " + id, id + "@email.com", role, Instant.parse("2026-10-02T18:00:00Z"));
+        id, "Nome " + id, id, id + "@email.com", role, Instant.parse("2026-10-02T18:00:00Z"));
   }
 }
