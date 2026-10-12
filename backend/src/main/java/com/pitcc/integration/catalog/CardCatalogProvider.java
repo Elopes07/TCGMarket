@@ -1,7 +1,6 @@
 package com.pitcc.integration.catalog;
 
 import com.pitcc.model.CardGame;
-
 import java.util.List;
 import java.util.Optional;
 
