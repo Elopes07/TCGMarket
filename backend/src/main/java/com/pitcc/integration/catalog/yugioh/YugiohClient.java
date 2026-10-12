@@ -31,6 +31,25 @@ public class YugiohClient {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
   }
 
+  public List<YugiohCardDto> fetchAll() {
+    return ExternalApiErrors.fetch(CardGame.YUGIOH, () -> restClient.get()
+                    .uri("/cardinfo.php")
+                    .retrieve()
+                    .onStatus(
+                            status -> status.isError(),
+                            ExternalApiErrors.errorHandler(CardGame.YUGIOH)
+                    )
+                    .body(YugiohCardsResponse.class))
+            .map(response -> cardsOf(response.data()))
+            .orElseThrow(() -> new ExternalApiException(
+                    CardGame.YUGIOH,
+                    ExternalApiErrorType.INVALID_RESPONSE,
+                    null,
+                    "A API retornou uma resposta vazia na carga completa de Yu-Gi-Oh!.",
+                    null
+            ));
+  }
+
   public List<YugiohCardDto> search(String query) {
     Assert.hasText(query, "query must not be blank");
     String term = query.trim();

@@ -40,6 +40,16 @@ public class YugiohProvider implements CardCatalogProvider, CatalogImportProvide
   }
 
   @Override
+  public ImportBatch fetchAllForImport() {
+    return ImportBatch.map(
+            client.fetchAll(),
+            getSource(),
+            dto -> dto.id() == null ? null : dto.id().toString(),
+            dto -> YugiohCardMapper.toYugiohCards(dto)
+    );
+  }
+
+  @Override
   public List<ExternalCard> searchCards(String query) {
     return client.search(query).stream()
         .flatMap(dto -> YugiohCardMapper.toExternalCards(dto).stream())
