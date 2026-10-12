@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>TCGMarket • Protótipo da Área Administrativa e do Perfil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--p1:#660366;--p1-deep:#4f024f;--p2:#996699;--p3:#C8A2C8;--p-soft:#f0e3f0;--p-softer:#faf5fa;--n0:#fff;--n50:#fafbfe;--n100:#f4f4fd;--n200:#e6e7f0;--n300:#d1d3de;--n500:#74788a;--n700:#484b5a;--n900:#302b40;--red:#b91c1c;--red-bg:#fdecec;--green:#15803d;--green-bg:#e7f6ec;--amber:#a16207;--amber-bg:#fdf6e3;--info:#1d4ed8;--info-bg:#e8f0fe;--orange:#d97706;--display:'Cinzel',Georgia,serif;--sans:'Plus Jakarta Sans',Arial,sans-serif;--radius:12px;--shadow:0 1px 2px #302b400d,0 4px 14px #302b400a}
+*{box-sizing:border-box}
+html,body{margin:0;font-family:var(--sans);color:var(--n900);background:var(--n50);font-size:14px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--p1)}
+:focus-visible{outline:3px solid #b16acc;outline-offset:2px}
+[hidden]{display:none!important}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Navbar */
+.topbar{background:linear-gradient(90deg,#4f024f,#660366 55%,#7a1a7a);color:#fff}
+.topbar-in{max-width:1280px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:24px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:.5px;color:#fff;text-decoration:none;white-space:nowrap}
+.brand img{width:34px;height:34px}
+.search{flex:1;max-width:520px;display:flex;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:9px 12px;color:var(--n500)}
+.search span{font-size:13px}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:16px}
+.btn-ghost-light{display:flex;align-items:center;gap:8px;border:1px solid #ffffff66;background:transparent;color:#fff;border-radius:10px;padding:8px 14px;font-weight:600;font-size:13px}
+.avatar-btn{display:flex;align-items:center;gap:8px;background:transparent;border:0;color:#fff}
+.gamebar{background:#fff;border-bottom:1px solid var(--n200)}
+.gamebar-in{max-width:1280px;margin:0 auto;display:flex;justify-content:center;gap:8px}
+.gamebar a{display:flex;align-items:center;gap:6px;padding:12px 16px;font-weight:600;font-size:13px;color:var(--n700);text-decoration:none;border-bottom:2px solid transparent}
+.gamebar a.soon{color:var(--n500)}
+.gamebar a small{font-size:10px;background:var(--n100);border-radius:999px;padding:1px 6px;color:var(--n500)}
+
+/* Layout */
+.wrap{max-width:1280px;margin:0 auto;padding:16px 24px 40px}
+.crumb{display:flex;align-items:center;gap:6px;color:var(--n500);font-size:12px;margin-bottom:12px}
+.crumb a{color:var(--p1);text-decoration:none;font-weight:600}
+.card{background:#fff;border:1px solid var(--n200);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-pad{padding:20px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.card-head h2,.card-head h3{margin:0;font-size:15px;font-weight:700}
+.link{font-size:12px;font-weight:700;color:var(--p1);text-decoration:none;display:inline-flex;align-items:center;gap:4px;background:none;border:0;padding:0}
+h1.display{font-family:var(--display);color:var(--p1);margin:0;font-size:30px;line-height:1.2}
+.muted{color:var(--n500)}
+.row{display:flex;gap:16px}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+/* Buttons */
+.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;padding:10px 16px;font-weight:700;font-size:13px;border:1px solid transparent;transition:background .15s,border .15s}
+.btn-primary{background:var(--p1);color:#fff}.btn-primary:hover{background:var(--p1-deep)}
+.btn-secondary{background:var(--p-soft);color:var(--p1)}
+.btn-outline{background:#fff;border-color:var(--p3);color:var(--p1)}.btn-outline:hover{background:var(--p-softer)}
+.btn-ghost{background:transparent;color:var(--n700)}.btn-ghost:hover{background:var(--n100)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger-outline{background:#fff;border-color:#f1b8b8;color:var(--red)}
+.btn[disabled],.btn[aria-disabled=true]{opacity:.5;cursor:not-allowed}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:8px}
+.spinner{width:14px;height:14px;border:2px solid #ffffff66;border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green)}
+.b-red{background:var(--red-bg);color:var(--red)}
+.b-amber{background:var(--amber-bg);color:var(--amber)}
+.b-purple{background:var(--p1);color:#fff}
+.b-soft{background:var(--p-soft);color:var(--p1)}
+.b-neutral{background:var(--n100);color:var(--n700)}
+.b-info{background:var(--info-bg);color:var(--info)}
+
+/* Avatar */
+.av{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--p3);color:var(--p1-deep);font-weight:700;flex:none}
+.av-xl{width:112px;height:112px;font-size:38px;border:4px solid #fff;box-shadow:0 6px 20px #66036633;background:linear-gradient(135deg,#C8A2C8,#996699);color:#fff;font-family:var(--display)}
+.av-md{width:36px;height:36px;font-size:13px}
+.av-sm{width:30px;height:30px;font-size:11px}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;border-radius:var(--radius);background:linear-gradient(110deg,#fff 0%,#fbf6fb 42%,#e9d4ea 100%);border:1px solid var(--n200);padding:24px 28px;display:flex;align-items:center;gap:24px;margin-bottom:16px}
+.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:420px;height:260px;background:radial-gradient(circle at 70% 40%,#c8a2c855,transparent 60%),radial-gradient(circle at 30% 80%,#99669933,transparent 55%);pointer-events:none}
+.hero .deco{position:absolute;right:40px;top:50%;transform:translateY(-50%);display:flex;gap:10px;opacity:.55;pointer-events:none}
+.hero .deco span{width:58px;height:82px;border-radius:8px;border:2px solid #fff;background:linear-gradient(160deg,#996699,#660366);box-shadow:0 6px 16px #66036640}
+.hero .deco span:nth-child(1){transform:rotate(-12deg) translateY(8px)}.hero .deco span:nth-child(2){transform:translateY(-6px)}.hero .deco span:nth-child(3){transform:rotate(12deg) translateY(8px)}
+.hero-body{position:relative;z-index:1;flex:1;min-width:0}
+.hero-actions{position:relative;z-index:2;align-self:flex-start}
+.hero h1{margin:0;font-family:var(--display);color:var(--p1);font-size:28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:6px;color:var(--n700);font-size:13px}
+.meta span{display:inline-flex;align-items:center;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--p3);background:#fff;color:var(--p1);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600}
+
+/* Profile body */
+.profile-grid{display:grid;grid-template-columns:1fr 340px;gap:16px}
+.tcg-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tcg-tile{border:1px solid var(--n200);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:700;font-size:13px}
+.tcg-tile.on{background:var(--p1);color:#fff;border-color:var(--p1)}
+.tcg-tile.off{color:var(--n500);background:var(--n50)}
+.tcg-tile .gi{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ffffff26;border:2px solid currentColor;font-family:var(--display);font-size:13px}
+.info-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.info-list li{display:flex;align-items:center;gap:10px;color:var(--n700);font-size:13px}
+.info-list li svg{color:var(--p2)}
+.soon-box{border:1.5px dashed var(--p3);border-radius:10px;background:var(--p-softer);padding:22px;text-align:center;color:var(--n700)}
+.soon-box strong{display:block;color:var(--p1);margin-bottom:4px}
+.fake-cards{display:flex;justify-content:center;gap:8px;margin-bottom:10px;opacity:.35}
+.fake-cards span{width:34px;height:48px;border-radius:5px;background:linear-gradient(160deg,#996699,#660366)}
+
+/* Forms */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+.field label,.field .lbl{font-weight:700;font-size:13px}
+.field .req{color:var(--red)}
+.input,.select,.textarea{border:1px solid var(--n300);border-radius:10px;padding:10px 12px;background:#fff;width:100%}
+.textarea{min-height:92px;resize:vertical}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--p2);outline:3px solid #c8a2c855;outline-offset:0}
+.input-group{display:flex;align-items:stretch}
+.input-group .prefix{border:1px solid var(--n300);border-right:0;border-radius:10px 0 0 10px;padding:10px 12px;background:var(--n100);color:var(--n500);font-weight:700}
+.input-group .input{border-radius:0 10px 10px 0}
+.help{font-size:12px;color:var(--n500);display:flex;justify-content:space-between;gap:8px}
+.field.invalid .input,.field.invalid .textarea{border-color:var(--red);background:#fffafa}
+.field.invalid .prefix{border-color:var(--red)}
+.err{font-size:12px;color:var(--red);font-weight:600;display:flex;align-items:center;gap:6px}
+.readonly{background:var(--n100);border:1px solid var(--n200);border-radius:10px;padding:10px 12px;color:var(--n700);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.check-chips{display:flex;gap:8px;flex-wrap:wrap}
+.check-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--n300);border-radius:10px;padding:9px 14px;font-weight:600;background:#fff}
+.check-chip.on{border-color:var(--p1);background:var(--p-soft);color:var(--p1)}
+.check-chip .box{width:16px;height:16px;border-radius:4px;border:2px solid currentColor;display:flex;align-items:center;justify-content:center}
+.check-chip.on .box{background:var(--p1);border-color:var(--p1);color:#fff}
+.section-title{font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--p2);margin:4px 0 0;grid-column:1/-1;padding-top:8px;border-top:1px solid var(--n200)}
+.form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--n200)}
+.avatar-edit{display:flex;align-items:center;gap:18px}
+
+/* Alerts */
+.alert{display:flex;gap:12px;align-items:flex-start;border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:16px;border:1px solid}
+.alert strong{display:block}
+.alert-success{background:var(--green-bg);border-color:#b7e3c4;color:#14532d}
+.alert-error{background:var(--red-bg);border-color:#f5c2c2;color:#7f1d1d}
+.alert-info{background:var(--info-bg);border-color:#c3d4fb;color:#1e3a8a}
+.alert-warn{background:var(--amber-bg);border-color:#f1dca4;color:#713f12}
+
+/* Admin */
+.admin-hero{background:linear-gradient(110deg,#fff 0%,#fbf6fb 45%,#e9d4ea 100%)}
+.admin-hero .icon-box{width:64px;height:64px;border-radius:14px;background:var(--p-soft);color:var(--p1);display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+.admin-hero .icon-box svg{width:32px;height:32px}
+.wrap.wide{max-width:1400px}
+.admin-grid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:start}
+.admin-grid>*,.kpis>*,.dash-main>*,.dash-bottom>*,.detail-grid>*{min-width:0}
+.table td.nw,.who b{white-space:nowrap}
+.side{padding:10px;position:sticky;top:12px}
+.side a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;color:var(--n700);text-decoration:none;font-weight:600;font-size:13px}
+.side a:hover{background:var(--n100)}
+.side a.active{background:var(--p-soft);color:var(--p1)}
+.side a.disabled{color:var(--n500);cursor:not-allowed}
+.side a.disabled:hover{background:transparent}
+.side a .badge{margin-left:auto}
+.side hr{border:0;border-top:1px solid var(--n200);margin:8px 4px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:16px;display:flex;gap:12px;align-items:flex-start}
+.kpi .ic{width:42px;height:42px;border-radius:10px;background:var(--p-soft);color:var(--p1);display:flex;align-items:center;justify-content:center}
+.kpi .lbl{font-size:12px;color:var(--n700);font-weight:600}
+.kpi .val{font-size:24px;font-weight:700;line-height:1.2;margin-top:2px}
+.kpi .delta{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-top:6px}
+.kpi .delta.up{background:var(--green-bg);color:var(--green)}
+.kpi .delta.flat{background:var(--n100);color:var(--n500)}
+.kpi .sub{font-size:11px;color:var(--n500);margin-top:4px}
+.kpi.empty .val{font-size:13px;color:var(--n500);font-weight:600;margin-top:6px}
+.dash-main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 240px;gap:16px}
+.dash-bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 300px;gap:16px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--n700)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:0;border-top:3px solid}
+.seg{display:inline-flex;border:1px solid var(--n300);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:5px 10px;font-size:12px;font-weight:600;color:var(--n700)}
+.seg button.on{background:var(--p1);color:#fff}
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut-legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:12px;flex:1}
+.donut-legend li{display:flex;align-items:center;gap:8px}
+.donut-legend li b{margin-left:auto}
+.sw{width:12px;height:12px;border-radius:3px;flex:none}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quick button{border:1px solid var(--n200);background:#fff;border-radius:10px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--n700);text-align:center}
+.quick button svg{color:var(--p1);width:22px;height:22px}
+.quick button:hover{border-color:var(--p3);background:var(--p-softer)}
+.quick button[disabled]{opacity:.55;cursor:not-allowed}
+.quick button[disabled] svg{color:var(--n500)}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--n500);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--n200)}
+.table td{padding:10px;border-bottom:1px solid var(--n100);vertical-align:middle}
+.table tr:last-child td{border-bottom:0}
+.table tr.self td{background:var(--p-softer)}
+.who{display:flex;align-items:center;gap:10px}
+.who b{display:block;font-size:13px}
+.who small{color:var(--n500);font-size:12px}
+.feed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.feed li{display:flex;gap:10px;align-items:flex-start;font-size:12px}
+.feed .fi{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;background:var(--p-soft);color:var(--p1)}
+.feed .fi svg{width:15px;height:15px}
+.feed .fi.red{background:var(--red-bg);color:var(--red)}
+.feed .fi.amber{background:var(--amber-bg);color:var(--amber)}
+.feed b{display:block;font-size:12px}
+.feed time{margin-left:auto;color:var(--n500);white-space:nowrap}
+.block-empty{border:1.5px dashed var(--n300);border-radius:10px;padding:22px;text-align:center;color:var(--n500);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:150px;justify-content:center}
+.block-empty svg{width:26px;height:26px;color:var(--p3)}
+.block-error{border:1px solid #f5c2c2;background:#fffafa;border-radius:10px;padding:22px;text-align:center;color:#7f1d1d;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:10px;min-height:220px;justify-content:center}
+.block-error svg{width:28px;height:28px;color:var(--red)}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.toolbar .search-in{flex:1;min-width:240px;display:flex;align-items:center;gap:8px;border:1px solid var(--n300);border-radius:10px;padding:0 12px;background:#fff}
+.toolbar .search-in input{border:0;outline:0;padding:10px 0;flex:1;background:transparent}
+.toolbar .select{width:auto;min-width:150px}
+.pager{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:12px;color:var(--n500)}
+.pager .pages{display:flex;gap:4px}
+.pager .pages button{min-width:32px;height:32px;border-radius:8px;border:1px solid var(--n300);background:#fff;font-weight:700;font-size:12px}
+.pager .pages button.on{background:var(--p1);color:#fff;border-color:var(--p1)}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--n200);background:#fff;display:inline-flex;align-items:center;justify-content:center;color:var(--n700)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:10px 12px;font-size:13px;margin:0}
+.kv dt{color:var(--n500);font-weight:600}
+.kv dd{margin:0}
+.timeline{list-style:none;margin:0;padding:0;border-left:2px solid var(--n200);padding-left:16px;display:flex;flex-direction:column;gap:14px}
+.timeline li{position:relative;font-size:13px}
+.timeline li::before{content:"";position:absolute;left:-22px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--p2);border:2px solid #fff}
+.timeline li.red::before{background:var(--red)}
+.timeline small{display:block;color:var(--n500)}
+.action-bar{display:flex;gap:8px;flex-wrap:wrap}
+.tip{font-size:11px;color:var(--n500);display:flex;align-items:center;gap:4px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--n100);border-radius:5px;padding:1px 6px;color:var(--n700)}
+.thumb{width:36px;height:50px;border-radius:5px;background:linear-gradient(160deg,#C8A2C8,#996699);flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-family:var(--display)}
+.thumb.dim{filter:grayscale(1);opacity:.55}
+
+/* Center states */
+.center-state{max-width:520px;margin:30px auto;text-align:center;padding:40px 32px}
+.center-state .ill{width:96px;height:96px;margin:0 auto 18px;border-radius:50%;background:var(--p-soft);color:var(--p1);display:flex;align-items:center;justify-content:center;position:relative}
+.center-state .ill svg{width:44px;height:44px}
+.center-state .ill.red{background:var(--red-bg);color:var(--red)}
+.center-state h2{font-family:var(--display);color:var(--p1);margin:0 0 8px;font-size:22px}
+.center-state p{color:var(--n700);margin:0 0 20px}
+.center-state .floating span{position:absolute;width:26px;height:36px;border-radius:5px;background:linear-gradient(160deg,#C8A2C8,#996699);opacity:.35}
+.center-state .floating span:nth-child(1){left:-38px;top:10px;transform:rotate(-16deg)}
+.center-state .floating span:nth-child(2){right:-36px;top:30px;transform:rotate(14deg)}
+
+/* Skeleton */
+.sk{background:linear-gradient(90deg,#eceef5 25%,#f6f7fb 37%,#eceef5 63%);background-size:400% 100%;animation:sh 1.4s ease infinite;border-radius:8px}
+@keyframes sh{0%{background-position:100% 50%}100%{background-position:0 50%}}
+
+/* Modal */
+.overlay{position:fixed;inset:0;z-index:30;background:rgba(48,43,64,.5);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{width:min(560px,100%);background:#fff;border-radius:14px;box-shadow:0 20px 70px #1b0a306b;overflow:hidden;animation:open .2s ease-out}
+@keyframes open{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:20px 22px;border-bottom:1px solid var(--n200)}
+.modal-head h2{margin:0;font-family:var(--display);color:var(--p1);font-size:20px}
+.modal-head.danger h2{color:var(--red)}
+.modal-head p{margin:4px 0 0;color:var(--n700);font-size:13px}
+.modal-body{padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid var(--n200);background:var(--n50)}
+.target{display:flex;align-items:center;gap:12px;background:var(--n50);border:1px solid var(--n200);border-radius:10px;padding:10px 12px}
+
+/* Footer */
+footer{background:linear-gradient(90deg,#4f024f,#660366);color:#f0e3f0;margin-top:24px}
+.foot-in{max-width:1280px;margin:0 auto;padding:28px 24px;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:24px;font-size:12px}
+.foot-in h4{margin:0 0 8px;color:#fff;font-size:13px}
+.foot-in p{margin:4px 0}
+.foot-in .brand{font-size:18px}
+
+/* Demo bar */
+.demo-bar{position:fixed;z-index:40;bottom:14px;left:50%;transform:translateX(-50%);background:#250a30f3;border:1px solid #9e5db2;color:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 12px 38px #24082d60;display:flex;flex-direction:column;gap:6px;max-width:calc(100vw - 20px);font-size:12px;backdrop-filter:blur(9px)}
+.demo-bar .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+.demo-bar .lab{font-weight:700;padding:0 6px 0 2px;min-width:64px}
+.demo-bar button{border:1px solid #9959a2;background:#ffffff12;color:#fff;border-radius:8px;padding:6px 10px;font-size:11.5px;white-space:nowrap}
+.demo-bar button:hover,.demo-bar button.sel{background:#84298e;border-color:#cb92d9}
+.demo-toggle{position:fixed;z-index:41;right:14px;bottom:14px;border:1px solid #9e5db2;background:#250a30f3;color:#fff;border-radius:10px;padding:8px 12px;font-size:12px}
+body.capture .demo-bar,body.capture .demo-toggle{display:none}
+body{padding-bottom:110px}
+body.capture{padding-bottom:0}
+
+@media (max-width:1100px){.dash-main,.dash-bottom{grid-template-columns:1fr 1fr}.dash-main>:last-child,.dash-bottom>:last-child{grid-column:1/-1}.kpis{grid-template-columns:1fr 1fr}}
+@media (max-width:860px){.admin-grid,.profile-grid,.detail-grid,.form-grid{grid-template-columns:1fr}.side{position:static;display:flex;overflow-x:auto;gap:4px}.side hr{display:none}.side a{white-space:nowrap}.hero{flex-direction:column;align-items:flex-start}.hero .deco{display:none}.foot-in{grid-template-columns:1fr 1fr}.search{display:none}.dash-main,.dash-bottom{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<button class="demo-toggle" id="demoToggle" type="button" aria-controls="demoBar">Ocultar estados</button>
+<nav class="demo-bar" id="demoBar" aria-label="Estados do protótipo">
+  <div class="grp"><span class="lab">Perfil</span>
+    <button data-go="perfil">Meu perfil</button>
+    <button data-go="perfil-salvo">Salvo com sucesso</button>
+    <button data-go="perfil-editar">Editar</button>
+    <button data-go="perfil-editar-erro">Erro de validação</button>
+    <button data-go="perfil-salvando">Salvando</button>
+    <button data-go="perfil-publico">Perfil de outro jogador</button>
+    <button data-go="perfil-carregando">Carregando</button>
+    <button data-go="perfil-nao-encontrado">Não encontrado</button>
+    <button data-go="perfil-erro">Erro</button>
+  </div>
+  <div class="grp"><span class="lab">Admin</span>
+    <button data-go="admin">Dashboard</button>
+    <button data-go="admin-sem-marketplace">Sem marketplace</button>
+    <button data-go="admin-carregando">Carregando</button>
+    <button data-go="admin-erro-bloco">Erro em bloco</button>
+    <button data-go="admin-usuarios">Usuários</button>
+    <button data-go="admin-usuario">Detalhe</button>
+    <button data-go="admin-suspender">Suspender</button>
+    <button data-go="admin-limpar">Limpar perfil</button>
+    <button data-go="admin-promover">Promover</button>
+    <button data-go="admin-catalogo">Catálogo</button>
+    <button data-go="admin-ocultar">Ocultar carta</button>
+    <button data-go="acesso-negado">Acesso negado</button>
+  </div>
+</nav>
+
+<script>
+const ICONS = {
+  home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  bell:'<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  cart:'<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 8H6"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  users:'<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-9"/>',
+  cards:'<rect x="7" y="3" width="13" height="17" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h10"/>',
+  inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7z"/>',
+  store:'<path d="M3 9 5 3h14l2 6"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v8h14v-8"/>',
+  flag:'<path d="M4 22V4a1 1 0 0 1 1-1h12l-2 4 2 4H5"/>',
+  receipt:'<path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  file:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/>',
+  pin:'<path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+  alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  checkCircle:'<circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/>',
+  eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff:'<path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-6.4 0-10-7-10-7a18.5 18.5 0 0 1 5.1-5.9M9.9 5.2A9.1 9.1 0 0 1 12 5c6.4 0 10 7 10 7a18.6 18.6 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2M2 2l20 20"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  ban:'<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+  arrowUp:'<path d="M7 17 17 7M8 7h9v9"/>',
+  arrowRight:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  chevron:'<path d="m6 9 6 6 6-6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  crown:'<path d="m2 8 4 10h12l4-10-5 4-5-7-5 7z"/>',
+  eraser:'<path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4L13 5a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L11 21z"/><path d="M22 21H7M5 11l9 9"/>',
+  refresh:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/>',
+  dots:'<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  swap:'<path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4"/>'
+};
+const ic = (n, extra='') => `<svg class="i" ${extra} viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+const fmt = n => n.toLocaleString('pt-BR');
+
+const GAMES = [
+  {id:'POKEMON', name:'Pokémon', short:'PK', color:'#660366', count:5597},
+  {id:'MAGIC_THE_GATHERING', name:'Magic', short:'MG', color:'#996699', count:4104},
+  {id:'YUGIOH', name:'Yu-Gi-Oh!', short:'YG', color:'#C8A2C8', count:2735},
+];
+
+const ME = {name:'Lucas Martins', username:'lucas.tcg', initials:'LM', since:'mai. 2025', city:'Araras', uf:'SP',
+  bio:'Colecionador de Pokémon desde o Base Set e jogador de Magic aos fins de semana. Sempre aberto a trocas!',
+  games:['POKEMON','MAGIC_THE_GATHERING'], links:['https://instagram.com/lucas.tcg','https://discord.gg/tcgararas'], email:'lucas@email.com'};
+const OTHER = {name:'Maria Cardoso', username:'maria.cardz', initials:'MC', since:'ago. 2025', city:'Campinas', uf:'SP',
+  bio:'Duelista de Yu-Gi-Oh! e caçadora de raras. Monto decks temáticos e adoro trocar ideias sobre o meta.',
+  games:['YUGIOH','POKEMON'], links:['https://youtube.com/@mariacardz']};
+
+const USERS = [
+  {name:'Lucas Martins', username:'lucas.tcg', email:'lucas@email.com', date:'12/05/2025', role:'ADMIN', status:'ACTIVE', self:true},
+  {name:'Maria Cardoso', username:'maria.cardz', email:'maria@email.com', date:'30/09/2026', role:'USER', status:'ACTIVE'},
+  {name:'Otávio Reis', username:'otavio.tcg', email:'otavio@email.com', date:'30/09/2026', role:'USER', status:'SUSPENDED'},
+  {name:'Ana Paula Kimura', username:'ana.pkmn', email:'ana@email.com', date:'29/09/2026', role:'USER', status:'ACTIVE'},
+  {name:'Fernando Yoshida', username:'fernando.ygo', email:'fernando@email.com', date:'28/09/2026', role:'ADMIN', status:'ACTIVE'},
+  {name:'Beatriz Lima', username:'bia.mtg', email:'beatriz@email.com', date:'27/09/2026', role:'USER', status:'ACTIVE'},
+  {name:'Rafael Souza', username:'rafa.duel', email:'rafael@email.com', date:'26/09/2026', role:'USER', status:'ACTIVE'},
+  {name:'Juliana Prado', username:'ju.collect', email:'juliana@email.com', date:'25/09/2026', role:'USER', status:'ACTIVE'},
+];
+const initials = n => n.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
+
+const CARDS = [
+  {name:'Charizard', game:'Pokémon', set:'Base Set', rarity:'Rare Holo', type:'Pokémon', source:'Pokémon TCG API', ext:'base1-4', hidden:false},
+  {name:'Pikachu', game:'Pokémon', set:'Base Set', rarity:'Common', type:'Pokémon', source:'Pokémon TCG API', ext:'base1-58', hidden:false},
+  {name:'Black Lotus', game:'Magic', set:'Limited Edition Alpha', rarity:'Rare', type:'Artifact', source:'Scryfall', ext:'bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd', hidden:false},
+  {name:'Blue-Eyes White Dragon', game:'Yu-Gi-Oh!', set:'Legend of Blue Eyes White Dragon', rarity:'Ultra Rare', type:'Monstro', source:'YGOPRODeck', ext:'89631139', hidden:false},
+  {name:'Dark Magician', game:'Yu-Gi-Oh!', set:'Starter Deck: Yugi', rarity:'Ultra Rare', type:'Monstro', source:'YGOPRODeck', ext:'46986414', hidden:true},
+  {name:'Lightning Bolt', game:'Magic', set:'Magic 2010', rarity:'Common', type:'Instant', source:'Scryfall', ext:'e3285e6b-3e79-4d7c-bf96-d920f973b80c', hidden:false},
+  {name:'Mewtwo', game:'Pokémon', set:'Base Set', rarity:'Rare Holo', type:'Pokémon', source:'Pokémon TCG API', ext:'base1-10', hidden:false},
+];
+
+/* ---------- Layout ---------- */
+function topbar(isAdmin=true, who=ME, wide=false){
+  return `<header class="topbar"><div class="topbar-in" ${wide?'style="max-width:1400px"':''}>
+    <a class="brand" href="#perfil"><img src="../visual-identity/svg/mark-3cartas-branco.svg" alt="">TCG MARKET</a>
+    <div class="search" role="search">${ic('search')}<span>Buscar carta, anúncio ou usuário...</span></div>
+    <div class="top-actions">
+      <button class="btn-ghost-light" type="button">${ic('cart')}Criar anúncio</button>
+      ${ic('bell','style="color:#fff"')}
+      <button class="avatar-btn" type="button" aria-label="Menu da conta"><span class="av av-md">${who.initials}</span>${isAdmin?'<span class="badge b-soft">Admin</span>':''}${ic('chevron')}</button>
+    </div></div></header>
+  <nav class="gamebar" aria-label="Jogos"><div class="gamebar-in">
+    <a href="#">Magic</a><a href="#">Pokémon</a><a href="#">Yu-Gi-Oh!</a>
+  </div></nav>`;
+}
+function footer(){
+  return `<footer><div class="foot-in">
+    <div><span class="brand"><img src="../visual-identity/svg/mark-3cartas-branco.svg" alt="">TCG MARKET</span><p style="margin-top:10px">Colecione • Troque • Conecte</p></div>
+    <div><h4>Sobre</h4><p>Quem somos</p><p>Como funciona</p></div>
+    <div><h4>Ajuda</h4><p>Termos de uso</p><p>Política de privacidade</p></div>
+    <div><h4>Categorias</h4><p>Magic</p><p>Pokémon</p><p>Yu-Gi-Oh!</p></div>
+  </div></footer>`;
+}
+function page(inner, opts={}){
+  return topbar(opts.admin ?? true, opts.who ?? ME, opts.wide) + `<main class="wrap${opts.wide?' wide':''}">${inner}</main>` + footer();
+}
+function crumb(items){
+  return `<nav class="crumb" aria-label="Breadcrumb"><a href="#">${ic('home')}</a>${items.map(i=>`<span>›</span><span>${i}</span>`).join('')}</nav>`;
+}
+
+/* ---------- Perfil ---------- */
+function profileHero(u, own){
+  return `<section class="hero">
+    <span class="av av-xl" aria-hidden="true">${u.initials}</span>
+    <div class="hero-body">
+      <h1>${u.name} ${own?'<span class="badge b-purple">'+ic('crown','style="width:12px;height:12px"')+'Administrador</span>':''}</h1>
+      <div class="meta"><span>@${u.username}</span><span>${ic('calendar')}Membro desde ${u.since}</span><span>${ic('pin')}${u.city}, ${u.uf}</span></div>
+      <p style="margin:8px 0 0;max-width:620px;color:var(--n700)">${u.bio}</p>
+      <div class="chips">${u.games.map(g=>`<span class="chip">${GAMES.find(x=>x.id===g).name}</span>`).join('')}</div>
+    </div>
+    <div class="hero-actions">${own
+      ? `<a class="btn btn-outline" href="#perfil-editar">${ic('edit')}Editar perfil</a>`
+      : `<div class="action-bar"><button class="btn btn-outline" disabled title="Disponível quando a coleção pública existir">${ic('cards')}Ver coleção</button><button class="btn btn-outline" disabled title="Disponível com o fluxo de trocas">${ic('swap')}Propor troca</button></div><div class="tip" style="justify-content:flex-end;margin-top:6px">${ic('info','style="width:12px;height:12px"')}Ações sociais em breve</div>`}
+    </div>
+    ${own?'<div class="deco" aria-hidden="true"><span></span><span></span><span></span></div>':''}
+  </section>`;
+}
+function profileBody(u, own){
+  const tiles = GAMES.map(g=>`<div class="tcg-tile ${u.games.includes(g.id)?'on':'off'}"><span class="gi">${g.short}</span>${g.name}</div>`).join('');
+  return `<div class="profile-grid">
+    <div class="stack">
+      <section class="card card-pad"><div class="card-head"><h2>${own?'TCGs que coleciono':'TCGs que joga'}</h2>${own?`<a class="link" href="#perfil-editar">${ic('edit','style="width:14px;height:14px"')}Editar</a>`:''}</div><div class="tcg-tiles">${tiles}</div></section>
+      <section class="card card-pad"><div class="card-head"><h2>${own?'Minha coleção em destaque':'Coleção em destaque'}</h2></div>
+        <div class="soon-box"><div class="fake-cards" aria-hidden="true"><span></span><span></span><span></span><span></span></div><strong>Em breve</strong>${own?'As cartas em destaque aparecem aqui quando a Minha Coleção estiver disponível.':'A coleção dos jogadores aparece aqui quando o perfil público da coleção estiver disponível.'}</div>
+      </section>
+    </div>
+    <aside class="card card-pad"><div class="card-head"><h2>Sobre ${own?'mim':u.name.split(' ')[0]}</h2></div>
+      <p style="margin:0 0 14px;color:var(--n700)">${u.bio}</p>
+      <ul class="info-list">
+        <li>${ic('pin')}${u.city}, ${u.uf}</li>
+        <li>${ic('calendar')}Membro desde ${u.since}</li>
+        ${u.links.map(l=>`<li>${ic('link')}<a href="${l}" rel="noopener noreferrer" target="_blank">${l.replace('https://','')}</a></li>`).join('')}
+        ${own?`<li>${ic('lock')}<span>${u.email} <small class="muted">(visível só para você)</small></span></li>`:''}
+      </ul>
+    </aside>
+  </div>`;
+}
+function screenProfile(success=false){
+  return page(crumb(['Meu perfil']) + (success?`<div class="alert alert-success" role="status">${ic('checkCircle')}<div><strong>Perfil atualizado</strong>Suas alterações foram salvas e já aparecem para outros jogadores.</div></div>`:'') + profileHero(ME,true) + profileBody(ME,true));
+}
+function screenPublic(){
+  return page(crumb(['Jogadores','@'+OTHER.username]) + profileHero(OTHER,false) + profileBody(OTHER,false));
+}
+function screenProfileLoading(){
+  return page(crumb(['Meu perfil']) + `<section class="hero" aria-busy="true" aria-label="Carregando perfil"><div class="sk" style="width:112px;height:112px;border-radius:50%"></div><div class="hero-body"><div class="sk" style="width:280px;height:28px"></div><div class="sk" style="width:360px;height:14px;margin-top:12px"></div><div class="sk" style="width:520px;height:14px;margin-top:12px"></div><div class="sk" style="width:200px;height:24px;margin-top:12px"></div></div></section>
+  <div class="profile-grid"><div class="stack"><div class="card card-pad"><div class="sk" style="height:110px"></div></div><div class="card card-pad"><div class="sk" style="height:150px"></div></div></div><div class="card card-pad"><div class="sk" style="height:276px"></div></div></div>`);
+}
+function screenNotFound(){
+  return page(crumb(['Jogadores','@usuario.inexistente']) + `<section class="card center-state"><div class="ill"><div class="floating" aria-hidden="true"><span></span><span></span></div>${ic('search')}</div><h2>Perfil não encontrado</h2><p>Não encontramos um jogador com esse nome de usuário. Confira o endereço ou procure pela busca.</p><div class="action-bar" style="justify-content:center"><a class="btn btn-primary" href="#perfil">Voltar para o início</a></div></section>`);
+}
+function screenProfileError(){
+  return page(crumb(['Meu perfil']) + `<section class="card center-state"><div class="ill red">${ic('alert')}</div><h2>Não foi possível carregar o perfil</h2><p>Houve uma falha de conexão. Seus dados não foram alterados.</p><div class="action-bar" style="justify-content:center"><button class="btn btn-primary" type="button">${ic('refresh')}Tentar novamente</button><a class="btn btn-ghost" href="#perfil">Voltar para o início</a></div></section>`);
+}
+
+function screenEdit(mode='default'){
+  const err = mode==='error', saving = mode==='saving';
+  const f = (cond, html) => cond ? html : '';
+  return page(crumb(['Meu perfil','Editar perfil']) + `
+  <form class="card card-pad" style="max-width:920px;margin:0 auto" novalidate aria-labelledby="edit-title">
+    <div class="card-head" style="margin-bottom:6px"><h1 id="edit-title" class="display" style="font-size:24px">Editar perfil</h1></div>
+    <p class="muted" style="margin:0 0 18px">Essas informações aparecem no seu perfil público. Seu e-mail nunca é exibido para outros jogadores.</p>
+    ${f(err, `<div class="alert alert-error" role="alert">${ic('alert')}<div><strong>Revise os campos destacados</strong>2 campos precisam de correção antes de salvar.</div></div>`)}
+    <div class="form-grid">
+      <div class="field full"><span class="lbl">Foto do perfil</span>
+        <div class="avatar-edit"><span class="av av-xl" style="width:84px;height:84px;font-size:28px" aria-hidden="true">LM</span>
+          <div><div class="action-bar"><button class="btn btn-outline btn-sm" type="button" disabled>${ic('camera')}Trocar foto</button><span class="badge b-neutral">Em breve</span></div>
+          <div class="help" style="margin-top:6px">JPEG, PNG ou WebP até 2 MB. Sem foto, exibimos suas iniciais.</div></div></div>
+      </div>
+      <div class="field"><label for="f-name">Nome de exibição <span class="req">*</span></label><input id="f-name" class="input" value="Lucas Martins" maxlength="60"><div class="help"><span>Entre 2 e 60 caracteres.</span><span>13/60</span></div></div>
+      <div class="field ${err?'invalid':''}"><label for="f-user">Nome de usuário <span class="req">*</span></label>
+        <div class="input-group"><span class="prefix">@</span><input id="f-user" class="input" value="${err?'maria.cardz':'lucas.tcg'}" aria-invalid="${err}" aria-describedby="h-user"></div>
+        ${err?`<span class="err" id="h-user">${ic('alert','style="width:14px;height:14px"')}Este nome de usuário já está em uso.</span>`:`<div class="help" id="h-user"><span>3 a 20 caracteres: letras minúsculas, números, "_" e ".". Compõe o link do seu perfil.</span></div>`}
+      </div>
+      <div class="field full"><label for="f-bio">Bio</label><textarea id="f-bio" class="textarea" maxlength="280">${ME.bio}</textarea><div class="help"><span>Conte um pouco sobre você como jogador ou colecionador.</span><span>${ME.bio.length}/280</span></div></div>
+      <div class="field"><label for="f-city">Cidade</label><input id="f-city" class="input" value="Araras" maxlength="60"><div class="help"><span>Opcional. Nunca pedimos seu endereço.</span></div></div>
+      <div class="field"><label for="f-uf">UF</label><select id="f-uf" class="select"><option>SP</option><option>RJ</option><option>MG</option></select></div>
+      <div class="field full"><span class="lbl" id="l-games">TCGs que joga</span>
+        <div class="check-chips" role="group" aria-labelledby="l-games">${GAMES.map(g=>{const on=ME.games.includes(g.id);return `<label class="check-chip ${on?'on':''}"><span class="box">${on?ic('check','style="width:12px;height:12px"'):''}</span><input type="checkbox" class="sr-only" ${on?'checked':''}>${g.name}</label>`}).join('')}</div>
+      </div>
+      <div class="field full"><span class="lbl">Links (até 3)</span>
+        <input class="input" value="https://instagram.com/lucas.tcg" aria-label="Link 1">
+        <div class="field ${err?'invalid':''}" style="gap:4px"><input class="input" value="${err?'discord.gg/tcgararas':'https://discord.gg/tcgararas'}" aria-label="Link 2" aria-invalid="${err}">${err?`<span class="err">${ic('alert','style="width:14px;height:14px"')}Informe um link completo começando com https://</span>`:''}</div>
+        <input class="input" placeholder="https://" aria-label="Link 3">
+      </div>
+      <p class="section-title">Dados da conta</p>
+      <div class="field"><span class="lbl">E-mail</span><div class="readonly"><span>${ME.email}</span>${ic('lock')}</div><div class="help"><span>A troca de e-mail estará em Configurações (em breve).</span></div></div>
+      <div class="field"><span class="lbl">Nível de acesso</span><div class="readonly"><span class="badge b-purple">Administrador</span>${ic('lock')}</div><div class="help"><span>Definido pela administração. Não pode ser alterado aqui.</span></div></div>
+    </div>
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="#perfil">Cancelar</a>
+      <button class="btn btn-primary" type="button" ${saving?'disabled aria-busy="true"':''}>${saving?'<span class="spinner" aria-hidden="true"></span>Salvando...':'Salvar alterações'}</button>
+    </div>
+  </form>`);
+}
+
+/* ---------- Admin ---------- */
+const SIDE = [
+  {id:'admin', label:'Visão geral', icon:'chart'},
+  {id:'admin-usuarios', label:'Usuários', icon:'users'},
+  {id:'admin-catalogo', label:'Catálogo', icon:'cards'},
+  {sep:true},
+  {label:'Solicitações de carta', icon:'inbox', soon:true},
+  {label:'Anúncios', icon:'store', soon:true},
+  {label:'Denúncias', icon:'flag', soon:true},
+  {label:'Transações', icon:'receipt', soon:true},
+  {label:'Relatórios', icon:'file', soon:true},
+];
+function adminShell(active, inner, title='Área Administrativa', sub='Gerencie usuários, o catálogo e o funcionamento do TCG Market.'){
+  const side = SIDE.map(s=> s.sep ? '<hr>' : s.soon
+    ? `<a class="disabled" aria-disabled="true">${ic(s.icon)}${s.label}<span class="badge b-neutral">Em breve</span></a>`
+    : `<a href="#${s.id}" class="${s.id===active?'active':''}" ${s.id===active?'aria-current="page"':''}>${ic(s.icon)}${s.label}</a>`).join('');
+  return page(crumb(['Área administrativa']) + `
+    <section class="hero admin-hero"><div class="icon-box">${ic('settings')}</div><div class="hero-body"><h1>${title}</h1><p style="margin:4px 0 0;color:var(--n700)">${sub}</p></div><div class="deco" aria-hidden="true"><span></span><span></span><span></span></div></section>
+    <div class="admin-grid"><nav class="card side" aria-label="Seções administrativas">${side}</nav><div class="stack">${inner}</div></div>`, {wide:true});
+}
+
+function rnd(seed){let s=seed;return()=>{s=(s*9301+49297)%233280;return s/233280}}
+function series(seed, base, amp, trend){const r=rnd(seed);return Array.from({length:30},(_,i)=>Math.round(base+trend*i+Math.sin(i/2.3)*amp*0.5+r()*amp))}
+const S_USERS = series(7, 70, 40, 1.6), S_ADS = series(11, 50, 34, 1.2), S_SALES = series(23, 15, 18, .5);
+const DAYS = Array.from({length:30},(_,i)=>{const d=new Date(2026,9,11);d.setDate(d.getDate()-29+i);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})});
+
+function lineChart(withMarket){
+  const W=560,H=210,P={l:34,r:10,t:12,b:26};
+  const all = withMarket ? [S_USERS,S_ADS,S_SALES] : [S_USERS];
+  const max = Math.ceil(Math.max(...all.flat())/40)*40;
+  const x=i=>P.l+i*(W-P.l-P.r)/29, y=v=>H-P.b-v*(H-P.t-P.b)/max;
+  const path=s=>s.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
+  const grid=[0,.25,.5,.75,1].map(f=>{const v=Math.round(max*f);return `<line x1="${P.l}" x2="${W-P.r}" y1="${y(v)}" y2="${y(v)}" stroke="#e6e7f0"/><text x="${P.l-6}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="#74788a">${v}</text>`}).join('');
+  const xl=[0,7,14,21,29].map(i=>`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#74788a">${DAYS[i]}</text>`).join('');
+  const dots=S_USERS.map((v,i)=>i%3===0?`<circle cx="${x(i)}" cy="${y(v)}" r="2.6" fill="#660366"/>`:'').join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-labelledby="chart-t chart-d"><title id="chart-t">Atividade nos últimos 30 dias</title><desc id="chart-d">Valores detalhados na tabela a seguir.</desc>${grid}${xl}
+    <path d="${path(S_USERS)}" fill="none" stroke="#660366" stroke-width="2.5"/>${dots}
+    ${withMarket?`<path d="${path(S_ADS)}" fill="none" stroke="#b06ab3" stroke-width="2.5" stroke-dasharray="7 4"/><path d="${path(S_SALES)}" fill="none" stroke="#d97706" stroke-width="2.5" stroke-dasharray="2 4" stroke-linecap="round"/>`:''}
+  </svg>
+  <div class="sr-only"><table><caption>Atividade diária</caption><thead><tr><th>Dia</th><th>Usuários novos</th>${withMarket?'<th>Anúncios criados</th><th>Vendas</th>':''}</tr></thead><tbody>${DAYS.map((d,i)=>`<tr><td>${d}</td><td>${S_USERS[i]}</td>${withMarket?`<td>${S_ADS[i]}</td><td>${S_SALES[i]}</td>`:''}</tr>`).join('')}</tbody></table></div>`;
+}
+function donut(){
+  const total=GAMES.reduce((a,g)=>a+g.count,0), R=52, C=2*Math.PI*R; let off=0;
+  const segs=GAMES.map(g=>{const len=g.count/total*C;const s=`<circle r="${R}" cx="70" cy="70" fill="none" stroke="${g.color}" stroke-width="22" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 70 70)"/>`;off+=len;return s}).join('');
+  return `<div class="donut-wrap"><svg viewBox="0 0 140 140" width="150" role="img" aria-label="Distribuição de ${fmt(total)} cartas por TCG">${segs}<text x="70" y="68" text-anchor="middle" font-size="18" font-weight="700" fill="#302b40">${fmt(total)}</text><text x="70" y="86" text-anchor="middle" font-size="10" fill="#74788a">cartas</text></svg>
+  <ul class="donut-legend">${GAMES.map(g=>`<li><span class="sw" style="background:${g.color}"></span>${g.name}<b>${Math.round(g.count/total*100)}%</b></li>`).join('')}<li class="muted" style="font-size:11px">${GAMES.map(g=>`${g.name}: ${fmt(g.count)}`).join(' · ')}</li></ul></div>`;
+}
+function kpi(icon,label,val,delta,empty){
+  if(empty) return `<div class="card kpi empty"><div class="ic">${ic(icon)}</div><div><div class="lbl">${label}</div><div class="val">Disponível quando o marketplace estiver ativo</div></div></div>`;
+  return `<div class="card kpi"><div class="ic">${ic(icon)}</div><div><div class="lbl">${label}</div><div class="val">${val}</div>${delta?`<span class="delta up">${ic('arrowUp','style="width:11px;height:11px"')}${delta}</span>`:`<span class="delta flat">—</span>`}<div class="sub">em relação ao mês anterior</div></div></div>`;
+}
+const userRow = u => `<tr${u.self?' class="self"':''}><td><div class="who"><span class="av av-sm">${initials(u.name)}</span><div><b>${u.name}${u.self?' <small>(você)</small>':''}</b><small>@${u.username}</small></div></div></td>`;
+const statusBadge = s => s==='ACTIVE'?'<span class="badge b-green">Ativa</span>':'<span class="badge b-red">Suspensa</span>';
+const roleBadge = r => r==='ADMIN'?'<span class="badge b-purple">Administrador</span>':'<span class="badge b-neutral">Jogador</span>';
+
+function screenDashboard(mode='full'){
+  const market = mode==='full' || mode==='error';
+  if(mode==='loading'){
+    const sk=h=>`<div class="card card-pad" aria-hidden="true"><div class="sk" style="height:14px;width:40%"></div><div class="sk" style="height:${h}px;margin-top:14px"></div></div>`;
+    return adminShell('admin', `<div class="kpis" aria-busy="true" aria-label="Carregando indicadores">${sk(40)}${sk(40)}${sk(40)}${sk(40)}</div><div class="dash-main">${sk(200)}${sk(200)}${sk(200)}</div><div class="dash-bottom">${sk(180)}${sk(180)}${sk(180)}</div>`);
+  }
+  const activity = mode==='error'
+    ? `<section class="card card-pad"><div class="card-head"><h2>Visão geral de atividade</h2></div><div class="block-error" role="alert">${ic('alert')}<div><strong>Não foi possível carregar o gráfico de atividade.</strong><br>Os outros indicadores continuam atualizados.</div><button class="btn btn-danger-outline btn-sm" type="button">${ic('refresh')}Tentar novamente</button></div></section>`
+    : `<section class="card card-pad"><div class="card-head"><h2>Visão geral de atividade</h2><div class="seg" role="group" aria-label="Período"><button type="button">7 dias</button><button type="button" class="on" aria-pressed="true">30 dias</button><button type="button">90 dias</button></div></div>
+      <div class="legend"><span><i style="border-color:#660366"></i>Usuários novos</span>${market?'<span><i style="border-color:#b06ab3;border-top-style:dashed"></i>Anúncios criados</span><span><i style="border-color:#d97706;border-top-style:dotted"></i>Vendas realizadas</span>':'<span class="muted">Anúncios e vendas aparecem quando o marketplace estiver ativo</span>'}</div>
+      ${lineChart(market)}</section>`;
+  const ads = market
+    ? `<table class="table"><thead><tr><th>Carta</th><th>Preço</th><th>Status</th></tr></thead><tbody>
+        ${[['Charizard','Pokémon','R$ 380,00','Ativo'],['Black Lotus','Magic','R$ 12.500,00','Ativo'],['Blue-Eyes White Dragon','Yu-Gi-Oh!','R$ 950,00','Ativo'],['Mewtwo','Pokémon','R$ 420,00','Pendente'],['Lightning Bolt','Magic','R$ 18,00','Ativo']].map(a=>`<tr><td><div class="who"><div><b>${a[0]}</b><small>${a[1]}</small></div></div></td><td class="nw">${a[2]}</td><td>${a[3]==='Ativo'?'<span class="badge b-green">Ativo</span>':'<span class="badge b-amber">Pendente</span>'}</td></tr>`).join('')}</tbody></table>`
+    : `<div class="block-empty">${ic('store')}<strong>Nenhum anúncio ainda</strong>Disponível quando o marketplace estiver ativo.</div>`;
+  const feed = [
+    ['user','Novo usuário cadastrado','@maria.cardz','2 min',''],
+    ['ban','Conta suspensa por Fernando','@otavio.tcg · spam em links','1 h','red'],
+    ['eyeOff','Carta ocultada do catálogo','Dark Magician · imagem incorreta','3 h','amber'],
+    ['crown','Promoção a administrador','@fernando.ygo por Lucas','1 d',''],
+    ...(market?[['cart','Venda realizada','Mewtwo · Rara','28 min','']]:[]),
+    ['eraser','Perfil moderado','@rafa.duel · bio removida','2 d','amber'],
+  ].slice(0,6);
+  return adminShell('admin', `
+    <div class="kpis">
+      ${kpi('users','Usuários cadastrados','842','12%')}
+      ${kpi('cards','Cartas no catálogo',fmt(12436),'15%')}
+      ${kpi('store','Anúncios ativos',fmt(1248),'8%',!market)}
+      ${kpi('cart','Vendas realizadas','327','21%',!market)}
+    </div>
+    <div class="dash-main">
+      ${activity}
+      <section class="card card-pad"><div class="card-head"><h2>Distribuição de TCGs</h2></div>${donut()}</section>
+      <section class="card card-pad"><div class="card-head"><h2>Ações rápidas</h2></div><div class="quick">
+        <button type="button" onclick="location.hash='admin-usuarios'">${ic('users')}Gerenciar usuários</button>
+        <button type="button" onclick="location.hash='admin-catalogo'">${ic('cards')}Consultar catálogo</button>
+        <button type="button" disabled>${ic('store')}Gerenciar anúncios<small>Em breve</small></button>
+        <button type="button" disabled>${ic('file')}Ver relatórios<small>Em breve</small></button>
+      </div></section>
+    </div>
+    <div class="dash-bottom">
+      <section class="card card-pad"><div class="card-head"><h2>Últimos usuários cadastrados</h2><a class="link" href="#admin-usuarios">Ver todos ${ic('arrowRight','style="width:14px;height:14px"')}</a></div>
+        <table class="table"><thead><tr><th>Usuário</th><th>Cadastro</th><th>Situação</th></tr></thead><tbody>${USERS.slice(1,6).map(u=>userRow(u)+`<td class="nw">${u.date}</td><td>${statusBadge(u.status)}</td></tr>`).join('')}</tbody></table></section>
+      <section class="card card-pad"><div class="card-head"><h2>Anúncios mais recentes</h2>${market?`<span class="link" aria-disabled="true" style="opacity:.6">Ver todos</span>`:''}</div>${ads}</section>
+      <section class="card card-pad"><div class="card-head"><h2>Últimas atividades</h2></div><ul class="feed">${feed.map(f=>`<li><span class="fi ${f[4]}">${ic(f[0])}</span><div><b>${f[1]}</b><span class="muted">${f[2]}</span></div><time>${f[3]}</time></li>`).join('')}</ul></section>
+    </div>`);
+}
+
+function screenUsers(){
+  return adminShell('admin-usuarios', `<section class="card card-pad">
+    <div class="card-head"><h2>Usuários</h2><span class="muted" style="font-size:12px">842 contas</span></div>
+    <div class="toolbar">
+      <label class="search-in">${ic('search')}<span class="sr-only">Pesquisar usuários</span><input placeholder="Pesquisar por nome, @usuário ou e-mail"></label>
+      <select class="select" aria-label="Filtrar por papel"><option>Todos os papéis</option><option>Administrador</option><option>Jogador</option></select>
+      <select class="select" aria-label="Filtrar por situação"><option>Todas as situações</option><option>Ativa</option><option>Suspensa</option></select>
+    </div>
+    <table class="table"><thead><tr><th>Usuário</th><th>E-mail</th><th>Cadastro</th><th>Papel</th><th>Situação</th><th><span class="sr-only">Ações</span></th></tr></thead>
+    <tbody>${USERS.map(u=>userRow(u)+`<td>${u.email}</td><td>${u.date}</td><td>${roleBadge(u.role)}</td><td>${statusBadge(u.status)}</td><td style="text-align:right"><a class="btn btn-outline btn-sm" href="#admin-usuario">Detalhes</a></td></tr>`).join('')}</tbody></table>
+    <div class="pager"><span>Exibindo 1–8 de 842 usuários</span><div class="pages"><button type="button" aria-label="Página anterior" disabled>‹</button><button class="on" type="button" aria-current="page">1</button><button type="button">2</button><button type="button">3</button><span style="padding:6px">…</span><button type="button">106</button><button type="button" aria-label="Próxima página">›</button></div></div>
+  </section>`);
+}
+
+function screenUserDetail(){
+  const u = USERS[1];
+  return adminShell('admin-usuarios', `
+    <a class="link" href="#admin-usuarios" style="margin-bottom:-4px">‹ Voltar para usuários</a>
+    <section class="card card-pad"><div class="who" style="gap:16px"><span class="av av-xl" style="width:72px;height:72px;font-size:24px">MC</span>
+      <div style="flex:1"><h2 style="margin:0;font-size:20px">${u.name}</h2><div class="meta"><span>@${u.username}</span>${roleBadge(u.role)}${statusBadge(u.status)}</div></div>
+      <a class="btn btn-ghost" href="#perfil-publico">${ic('eye')}Ver perfil público</a></div>
+      <div class="action-bar" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--n200)">
+        <a class="btn btn-outline" href="#admin-promover">${ic('crown')}Promover a administrador</a>
+        <a class="btn btn-outline" href="#admin-limpar">${ic('eraser')}Limpar conteúdo do perfil</a>
+        <a class="btn btn-danger-outline" href="#admin-suspender">${ic('ban')}Suspender conta</a>
+      </div>
+    </section>
+    <div class="detail-grid">
+      <section class="card card-pad"><div class="card-head"><h3>Dados da conta</h3></div><dl class="kv">
+        <dt>E-mail</dt><dd>${u.email}</dd><dt>Cadastro</dt><dd>${u.date}</dd><dt>Localização</dt><dd>Campinas, SP</dd><dt>TCGs</dt><dd>Yu-Gi-Oh!, Pokémon</dd><dt>Bio</dt><dd>${OTHER.bio}</dd><dt>Links</dt><dd>youtube.com/@mariacardz</dd></dl></section>
+      <section class="card card-pad"><div class="card-head"><h3>Histórico administrativo</h3></div><ul class="timeline">
+        <li class="red"><b>Conta suspensa</b> por @fernando.ygo<small>02/09/2026 14:10 · Motivo: links de spam na bio</small></li>
+        <li><b>Conta reativada</b> por @lucas.tcg<small>05/09/2026 09:32 · Motivo: usuário removeu os links</small></li>
+        <li><b>Bio removida</b> por @lucas.tcg<small>05/09/2026 09:30 · Motivo: conteúdo ofensivo</small></li>
+      </ul></section>
+    </div>
+    <section class="card card-pad"><div class="card-head"><h3>Sua própria conta</h3></div>
+      <div class="who"><span class="av av-sm">LM</span><div><b>Lucas Martins <small>(você)</small></b><small>@lucas.tcg</small></div>
+      <div class="action-bar" style="margin-left:auto"><button class="btn btn-outline btn-sm" disabled>${ic('crown')}Alterar papel</button><button class="btn btn-danger-outline btn-sm" disabled>${ic('ban')}Suspender</button></div></div>
+      <p class="tip" style="margin:8px 0 0">${ic('info','style="width:12px;height:12px"')}Você não pode alterar o próprio papel nem suspender a própria conta. Edite seus dados em Meu perfil.</p>
+    </section>`);
+}
+
+function modal({danger=false,title,desc,body,confirm,confirmIcon}){
+  return `<div class="overlay" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <div class="modal-head ${danger?'danger':''}"><div><h2 id="m-title">${title}</h2><p>${desc}</p></div><a class="icon-btn" href="#admin-usuario" aria-label="Fechar">${ic('x')}</a></div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-foot"><a class="btn btn-ghost" href="#admin-usuario">Cancelar</a><button class="btn ${danger?'btn-danger':'btn-primary'}" type="button">${ic(confirmIcon)}${confirm}</button></div>
+  </div></div>`;
+}
+const targetUser = `<div class="target"><span class="av av-md">MC</span><div class="who"><div><b>Maria Cardoso</b><small>@maria.cardz · maria@email.com</small></div></div></div>`;
+const reasonField = (ph) => `<div class="field"><label for="m-reason">Motivo <span class="req">*</span></label><textarea id="m-reason" class="textarea" placeholder="${ph}" maxlength="300"></textarea><div class="help"><span>Entre 10 e 300 caracteres. Fica registrado no histórico administrativo.</span><span>0/300</span></div></div>`;
+
+function screenSuspend(){
+  return screenUserDetail() + modal({danger:true,title:'Suspender conta',desc:'A pessoa perde o acesso na próxima ação e o perfil público deixa de aparecer.',confirm:'Suspender conta',confirmIcon:'ban',
+    body: targetUser + `<div class="alert alert-warn" style="margin:0">${ic('alert')}<div>A conta pode ser reativada depois. Anúncios e coleção não são apagados.</div></div>` + reasonField('Ex.: links de spam repetidos na bio após aviso.')});
+}
+function screenClean(){
+  const opts=[['Bio',true],['Links',true],['Foto do perfil',false],['Cidade/UF',false]];
+  return screenUserDetail() + modal({title:'Limpar conteúdo do perfil',desc:'Os campos selecionados voltam ao padrão. Nome e @usuário só podem ser alterados pela própria pessoa.',confirm:'Limpar campos selecionados',confirmIcon:'eraser',
+    body: targetUser + `<fieldset class="field" style="border:0;padding:0;margin:0"><legend class="lbl" style="margin-bottom:8px">Campos a limpar</legend><div class="check-chips">${opts.map(([l,on])=>`<label class="check-chip ${on?'on':''}"><span class="box">${on?ic('check','style="width:12px;height:12px"'):''}</span><input type="checkbox" class="sr-only" ${on?'checked':''}>${l}</label>`).join('')}</div></fieldset>` + reasonField('Ex.: bio com linguagem ofensiva.')});
+}
+function screenPromote(){
+  return screenUserDetail() + modal({title:'Promover a administrador',desc:'A pessoa passa a acessar a Área Administrativa, incluindo a gestão de usuários.',confirm:'Promover',confirmIcon:'crown',
+    body: targetUser + `<div class="alert alert-info" style="margin:0">${ic('info')}<div>A alteração vale na próxima requisição e fica registrada no histórico. Ela pode ser revertida a qualquer momento por outro administrador.</div></div>`});
+}
+
+function screenCatalog(modalHide=false){
+  const rows = CARDS.map(c=>`<tr><td><div class="who"><span class="thumb ${c.hidden?'dim':''}">${c.name[0]}</span><div><b>${c.name}</b><small>${c.set}</small></div></div></td><td>${c.game}</td><td>${c.rarity}</td><td><span class="badge b-info">${c.source}</span><div style="margin-top:4px"><span class="mono" title="${c.ext}">${c.ext.length>14?c.ext.slice(0,13)+'…':c.ext}</span></div></td>
+    <td>${c.hidden?'<span class="badge b-amber">'+ic('eyeOff','style="width:11px;height:11px"')+'Oculta</span>':'<span class="badge b-green">Visível</span>'}</td>
+    <td style="text-align:right">${c.hidden?`<button class="btn btn-outline btn-sm" type="button">${ic('eye')}Reexibir</button>`:`<a class="btn btn-ghost btn-sm" href="#admin-ocultar">${ic('eyeOff')}Ocultar</a>`}</td></tr>`).join('');
+  const inner = `<section class="card card-pad">
+    <div class="card-head"><h2>Catálogo</h2><span class="muted" style="font-size:12px">${fmt(12436)} cartas importadas</span></div>
+    <div class="alert alert-info">${ic('info')}<div>As cartas vêm das APIs oficiais (Pokémon TCG API, YGOPRODeck e Scryfall) e não são editadas aqui. Você pode ocultar uma carta com dado ou imagem problemáticos.</div></div>
+    <div class="toolbar">
+      <label class="search-in">${ic('search')}<span class="sr-only">Pesquisar cartas</span><input placeholder="Pesquisar pelo nome da carta"></label>
+      <select class="select" aria-label="TCG"><option>Todos os TCGs</option>${GAMES.map(g=>`<option>${g.name}</option>`).join('')}</select>
+      <select class="select" aria-label="Coleção"><option>Todas as coleções</option></select>
+      <select class="select" aria-label="Raridade"><option>Todas as raridades</option></select>
+      <select class="select" aria-label="Visibilidade"><option>Visíveis e ocultas</option><option>Somente ocultas</option></select>
+    </div>
+    <table class="table"><thead><tr><th>Carta</th><th>TCG</th><th>Raridade</th><th>Origem</th><th>Catálogo público</th><th><span class="sr-only">Ações</span></th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="pager"><span>Exibindo 1–7 de ${fmt(12436)} cartas</span><div class="pages"><button type="button" disabled aria-label="Página anterior">‹</button><button class="on" type="button" aria-current="page">1</button><button type="button">2</button><span style="padding:6px">…</span><button type="button">622</button><button type="button" aria-label="Próxima página">›</button></div></div>
+  </section>`;
+  const base = adminShell('admin-catalogo', inner);
+  if(!modalHide) return base;
+  return base + `<div class="overlay"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <div class="modal-head"><div><h2 id="m-title">Ocultar carta do catálogo</h2><p>A carta some do catálogo público, mas continua válida para coleções e anúncios existentes.</p></div><a class="icon-btn" href="#admin-catalogo" aria-label="Fechar">${ic('x')}</a></div>
+    <div class="modal-body"><div class="target"><span class="thumb">C</span><div class="who"><div><b>Charizard</b><small>Base Set · Pokémon TCG API · <span class="mono">base1-4</span></small></div></div></div>
+    <div class="alert alert-info" style="margin:0">${ic('info')}<div>Os dados importados não são alterados. A ocultação continua valendo mesmo se a carta for importada de novo.</div></div>
+    ${reasonField('Ex.: imagem da carta está trocada na API.')}</div>
+    <div class="modal-foot"><a class="btn btn-ghost" href="#admin-catalogo">Cancelar</a><button class="btn btn-primary" type="button">${ic('eyeOff')}Ocultar carta</button></div></div></div>`;
+}
+
+function screenDenied(){
+  const who = {initials:'MC'};
+  return page(crumb(['Área administrativa']) + `<section class="card center-state"><div class="ill">${ic('lock')}</div><h2>Acesso restrito</h2><p>Esta área é exclusiva para administradores do TCG Market. Se você acredita que deveria ter acesso, fale com a equipe.</p><div class="action-bar" style="justify-content:center"><a class="btn btn-primary" href="#perfil">Voltar para o início</a><a class="btn btn-ghost" href="#perfil-publico">Ir para meu perfil</a></div></section>`, {admin:false, who});
+}
+
+const ROUTES = {
+  'perfil': ()=>screenProfile(),
+  'perfil-salvo': ()=>screenProfile(true),
+  'perfil-editar': ()=>screenEdit(),
+  'perfil-editar-erro': ()=>screenEdit('error'),
+  'perfil-salvando': ()=>screenEdit('saving'),
+  'perfil-publico': screenPublic,
+  'perfil-carregando': screenProfileLoading,
+  'perfil-nao-encontrado': screenNotFound,
+  'perfil-erro': screenProfileError,
+  'admin': ()=>screenDashboard('full'),
+  'admin-sem-marketplace': ()=>screenDashboard('nomarket'),
+  'admin-carregando': ()=>screenDashboard('loading'),
+  'admin-erro-bloco': ()=>screenDashboard('error'),
+  'admin-usuarios': screenUsers,
+  'admin-usuario': screenUserDetail,
+  'admin-suspender': screenSuspend,
+  'admin-limpar': screenClean,
+  'admin-promover': screenPromote,
+  'admin-catalogo': ()=>screenCatalog(false),
+  'admin-ocultar': ()=>screenCatalog(true),
+  'acesso-negado': screenDenied,
+};
+
+function render(){
+  const params = new URLSearchParams(location.search);
+  document.body.classList.toggle('capture', params.has('captura'));
+  const key = location.hash.replace('#','') || 'perfil';
+  document.getElementById('app').innerHTML = (ROUTES[key] || ROUTES.perfil)();
+  document.querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('sel', b.dataset.go===key));
+  if(!document.querySelector('.overlay')) window.scrollTo(0,0);
+  if(params.has('captura')) document.fonts.ready.then(()=>{document.documentElement.dataset.altura = document.documentElement.scrollHeight;});
+}
+document.getElementById('demoBar').addEventListener('click', e=>{const b=e.target.closest('[data-go]'); if(b) location.hash=b.dataset.go;});
+document.getElementById('demoToggle').addEventListener('click', e=>{const bar=document.getElementById('demoBar');bar.hidden=!bar.hidden;e.currentTarget.textContent=bar.hidden?'Mostrar estados':'Ocultar estados';});
+window.addEventListener('hashchange', render);
+render();
+</script>
+</body>
+</html>
