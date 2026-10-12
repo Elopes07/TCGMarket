@@ -53,6 +53,7 @@ jobs:
           --health-retries 20
     env:
       MONGODB_URI: mongodb://localhost:27017/tcgmarket_test
+      MONGODB_TEST_URI: mongodb://localhost:27017/tcgmarket_test
     defaults:
       run:
         working-directory: backend

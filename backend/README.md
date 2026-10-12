@@ -33,3 +33,15 @@ ADMIN_EMAIL=admin@email.com ./mvnw spring-boot:run
 ```
 
 Na subida, a conta com esse e-mail passa a ser `ADMIN`. Se o e-mail não existir, a API só registra um aviso no log. Depois disso, outros administradores podem ser promovidos pela Área Administrativa (`PATCH /api/admin/users/{id}/role`).
+
+## Perfil do usuário
+
+| Método | Rota | Acesso |
+|---|---|---|
+| `GET` | `/api/users/me/profile` | Usuário autenticado |
+| `PUT` | `/api/users/me/profile` | Usuário autenticado |
+| `GET` | `/api/users/{username}/profile` | Público |
+
+O `PUT` aceita só `name`, `username`, `bio`, `city`, `state`, `favoriteGames` e `links`; e-mail, senha e papel enviados no corpo são ignorados. O perfil público nunca devolve e-mail, id nem papel, só o selo `administrator`.
+
+O `username` é gerado a partir do nome no cadastro (`lucas.martins`, `lucas.martins2`, ...). Contas criadas antes do perfil recebem um na próxima subida da API. O usuário pode trocá-lo depois; um nome já em uso devolve `409` no campo `username`.

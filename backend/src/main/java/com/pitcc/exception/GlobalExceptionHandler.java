@@ -3,6 +3,7 @@ package com.pitcc.exception;
 import com.pitcc.dto.ApiErrorResponse;
 import com.pitcc.dto.ApiErrorResponse.FieldErrorResponse;
 import com.pitcc.dto.LoginRequest;
+import com.pitcc.dto.UpdateProfileRequest;
 import com.pitcc.dto.UpdateUserRoleRequest;
 import com.pitcc.integration.catalog.ExternalApiException;
 import com.pitcc.security.SecurityConfig;
@@ -35,6 +36,7 @@ public class GlobalExceptionHandler {
         switch (exception.getBindingResult().getTarget()) {
           case LoginRequest _ -> "Dados de login inválidos.";
           case UpdateUserRoleRequest _ -> "Perfil inválido.";
+          case UpdateProfileRequest _ -> "Dados do perfil inválidos.";
           case null, default -> "Dados de cadastro inválidos.";
         };
     return ResponseEntity.badRequest().body(error(HttpStatus.BAD_REQUEST, message, fields));
@@ -78,12 +80,18 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(EmailAlreadyRegisteredException.class)
   public ResponseEntity<ApiErrorResponse> handleDuplicateEmail(
       EmailAlreadyRegisteredException exception) {
-    return conflict(exception.getMessage());
+    return conflict("email", exception.getMessage());
+  }
+
+  @ExceptionHandler(UsernameAlreadyTakenException.class)
+  public ResponseEntity<ApiErrorResponse> handleDuplicateUsername(
+      UsernameAlreadyTakenException exception) {
+    return conflict("username", exception.getMessage());
   }
 
   @ExceptionHandler(DuplicateKeyException.class)
   public ResponseEntity<ApiErrorResponse> handleDuplicateKey(DuplicateKeyException exception) {
-    return conflict("Já existe um usuário cadastrado com este e-mail.");
+    return conflict("email", "Já existe um usuário cadastrado com este e-mail.");
   }
 
   @ExceptionHandler(InvalidCatalogRequestException.class)
@@ -119,13 +127,13 @@ public class GlobalExceptionHandler {
         .body(error(HttpStatus.FORBIDDEN, message, List.of()));
   }
 
-  private ResponseEntity<ApiErrorResponse> conflict(String message) {
+  private ResponseEntity<ApiErrorResponse> conflict(String field, String message) {
     return ResponseEntity.status(HttpStatus.CONFLICT)
         .body(
             error(
                 HttpStatus.CONFLICT,
                 message,
-                List.of(new FieldErrorResponse("email", message))));
+                List.of(new FieldErrorResponse(field, message))));
   }
 
   private static HttpStatus externalStatus(ExternalApiException exception) {
