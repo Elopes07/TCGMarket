@@ -209,7 +209,7 @@
       "_type": "request_group",
       "parentId": "wrk_tcgmarket",
       "name": "Catálogo",
-      "description": "Cada busca chama o provedor externo daquele jogo. Jogos aceitos: pokemon, yugioh e magic.",
+      "description": "Consulta o catálogo interno (MongoDB). Jogos aceitos: pokemon, yugioh e magic.",
       "environment": {},
       "environmentPropertyOrder": null,
       "metaSortKey": 3
@@ -219,7 +219,7 @@
       "_type": "request",
       "parentId": "fld_catalog",
       "name": "Pokémon — buscar cartas",
-      "description": "Chama a Pokémon TCG API. Devolve até 20 cartas no formato interno.",
+      "description": "Pesquisa paginada no catálogo interno. Todos os parâmetros são opcionais: q (nome), set (nome da coleção), rarity, type (POKEMON, TRAINER ou ENERGY), page (começa em 0), size (1 a 50, padrão 20) e sort (name-asc ou name-desc).",
       "method": "GET",
       "url": "{{ _.base_url }}/api/catalog/pokemon/cards",
       "body": {},
@@ -228,6 +228,36 @@
           "name": "q",
           "value": "charizard",
           "disabled": false
+        },
+        {
+          "name": "set",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "rarity",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "type",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": true
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": true
+        },
+        {
+          "name": "sort",
+          "value": "name-asc",
+          "disabled": true
         }
       ],
       "headers": [
@@ -238,6 +268,32 @@
       ],
       "authentication": {},
       "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_pokemon_filters",
+      "_type": "request",
+      "parentId": "fld_catalog",
+      "name": "Pokémon — opções de filtro",
+      "description": "Coleções, raridades e tipos que existem no catálogo interno do jogo.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/catalog/pokemon/filters",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 1.5,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,
@@ -283,7 +339,7 @@
       "_type": "request",
       "parentId": "fld_catalog",
       "name": "Yu-Gi-Oh! — buscar cartas",
-      "description": "Chama a YGOPRODeck. Uma carta conceitual pode virar várias impressões.",
+      "description": "Pesquisa paginada no catálogo interno. Todos os parâmetros são opcionais: q (nome), set (nome da coleção), rarity, type (MONSTER, SPELL ou TRAP), page (começa em 0), size (1 a 50, padrão 20) e sort (name-asc ou name-desc).",
       "method": "GET",
       "url": "{{ _.base_url }}/api/catalog/yugioh/cards",
       "body": {},
@@ -292,6 +348,36 @@
           "name": "q",
           "value": "Blue-Eyes White Dragon",
           "disabled": false
+        },
+        {
+          "name": "set",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "rarity",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "type",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": true
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": true
+        },
+        {
+          "name": "sort",
+          "value": "name-asc",
+          "disabled": true
         }
       ],
       "headers": [
@@ -302,6 +388,32 @@
       ],
       "authentication": {},
       "metaSortKey": 3,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_yugioh_filters",
+      "_type": "request",
+      "parentId": "fld_catalog",
+      "name": "Yu-Gi-Oh! — opções de filtro",
+      "description": "Coleções, raridades e tipos que existem no catálogo interno do jogo.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/catalog/yugioh/filters",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3.5,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,
@@ -347,7 +459,7 @@
       "_type": "request",
       "parentId": "fld_catalog",
       "name": "Magic — buscar cartas",
-      "description": "Chama a Scryfall. Devolve até 20 impressões.",
+      "description": "Pesquisa paginada no catálogo interno. Todos os parâmetros são opcionais: q (nome), set (nome da coleção), rarity, type (LAND, CREATURE, INSTANT, SORCERY...), page (começa em 0), size (1 a 50, padrão 20) e sort (name-asc ou name-desc).",
       "method": "GET",
       "url": "{{ _.base_url }}/api/catalog/magic/cards",
       "body": {},
@@ -356,6 +468,36 @@
           "name": "q",
           "value": "black lotus",
           "disabled": false
+        },
+        {
+          "name": "set",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "rarity",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "type",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": true
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": true
+        },
+        {
+          "name": "sort",
+          "value": "name-asc",
+          "disabled": true
         }
       ],
       "headers": [
@@ -366,6 +508,32 @@
       ],
       "authentication": {},
       "metaSortKey": 5,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_magic_filters",
+      "_type": "request",
+      "parentId": "fld_catalog",
+      "name": "Magic — opções de filtro",
+      "description": "Coleções, raridades e tipos que existem no catálogo interno do jogo.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/catalog/magic/filters",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 5.5,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,

@@ -19,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -98,6 +99,13 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiErrorResponse> handleInvalidCatalog(InvalidCatalogRequestException exception) {
     return ResponseEntity.badRequest()
         .body(error(HttpStatus.BAD_REQUEST, exception.getMessage(), List.of()));
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ApiErrorResponse> handleTypeMismatch(
+      MethodArgumentTypeMismatchException exception) {
+    return ResponseEntity.badRequest()
+        .body(error(HttpStatus.BAD_REQUEST, "Parâmetro inválido: " + exception.getName() + ".", List.of()));
   }
 
   @ExceptionHandler(CatalogCardNotFoundException.class)
