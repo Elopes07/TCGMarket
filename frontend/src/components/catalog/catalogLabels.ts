@@ -1,0 +1,17 @@
+export const typeLabels: Record<string, string> = {
+  POKEMON: 'Pokémon',
+  TRAINER: 'Treinador',
+  ENERGY: 'Energia',
+  MONSTER: 'Monstro',
+  SPELL: 'Magia',
+  TRAP: 'Armadilha',
+  LAND: 'Terreno',
+  CREATURE: 'Criatura',
+  ARTIFACT: 'Artefato',
+  ENCHANTMENT: 'Encantamento',
+  PLANESWALKER: 'Planeswalker',
+  BATTLE: 'Batalha',
+  INSTANT: 'Mágica instantânea',
+  SORCERY: 'Feitiço',
+  KINDRED: 'Kindred',
+}
