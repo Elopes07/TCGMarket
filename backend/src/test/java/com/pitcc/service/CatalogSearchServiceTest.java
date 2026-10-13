@@ -5,6 +5,7 @@ import com.pitcc.exception.CatalogCardNotFoundException;
 import com.pitcc.exception.InvalidCatalogRequestException;
 import com.pitcc.model.*;
 import com.pitcc.repository.CardRepository;
+import com.pitcc.repository.HiddenCardRepository;
 import java.util.List;
 import java.util.Optional;
 import org.bson.Document;
@@ -25,10 +26,13 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CatalogSearchServiceTest {
   @Mock CardRepository repository;
+  @Mock HiddenCardRepository hiddenCards;
   @Mock MongoTemplate mongoTemplate;
   CatalogSearchService service;
 
-  @BeforeEach void setUp() { service = new CatalogSearchService(repository, mongoTemplate); }
+  @BeforeEach void setUp() {
+    service = new CatalogSearchService(repository, hiddenCards, mongoTemplate);
+  }
 
   private static CatalogSearchRequest request(String q, String set, String rarity, String type,
       Integer page, Integer size, String sort) {
@@ -118,7 +122,23 @@ class CatalogSearchServiceTest {
         () -> service.search("pokemon", request(null, null, null, null, null, null, "price")));
     assertThrows(InvalidCatalogRequestException.class,
         () -> service.search("pokemon", request(null, null, null, "TRAP", null, null, null)));
-    verifyNoInteractions(mongoTemplate, repository);
+    verifyNoInteractions(mongoTemplate, repository, hiddenCards);
+  }
+
+  @Test void shouldLeaveTheHiddenCardsOfTheGameOutOfThePublicCatalog() {
+    HiddenCard hidden = new HiddenCard();
+    hidden.setSource(CardSource.POKEMON_TCG_API);
+    hidden.setExternalId("base1-4");
+    when(hiddenCards.findBySource(CardSource.POKEMON_TCG_API)).thenReturn(List.of(hidden));
+    when(mongoTemplate.count(any(Query.class), eq(Card.class))).thenReturn(0L);
+
+    service.search("pokemon", request(null, null, null, null, null, null, null));
+
+    ArgumentCaptor<Query> query = ArgumentCaptor.forClass(Query.class);
+    verify(mongoTemplate).count(query.capture(), eq(Card.class));
+    assertEquals(new Document("game", "POKEMON")
+            .append("externalId", new Document("$nin", List.of("base1-4"))),
+        query.getValue().getQueryObject());
   }
 
   @Test void shouldListOnlyTheFilterOptionsThatExistInTheGameCatalog() {
