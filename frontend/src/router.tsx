@@ -8,6 +8,7 @@ import { DesignSystemPage } from '@/pages/DesignSystemPage'
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { CardDetailsPage } from '@/pages/CardDetailsPage'
 import { CatalogPage } from '@/pages/CatalogPage'
 import { ProfileEditPage } from '@/pages/ProfileEditPage'
 import { ProfilePage } from '@/pages/ProfilePage'
@@ -15,6 +16,7 @@ import { PublicProfilePage } from '@/pages/PublicProfilePage'
 import { NotFound, RootLayout } from '@/routes/RootLayout'
 import { parseAdminCatalogSearch } from '@/utils/adminCatalogSearch'
 import { parseCatalogSearch } from '@/utils/catalogSearch'
+import { isInternalPath } from '@/utils/redirect'
 import {
   createRootRoute,
   createRoute,
@@ -43,6 +45,18 @@ const catalogRoute = createRoute({
   path: '/catalogo/$game',
   validateSearch: parseCatalogSearch,
   component: CatalogPage,
+})
+
+const cardDetailsRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: '/cartas/$id',
+  validateSearch: (search: Record<string, unknown>): { adicionar?: true } =>
+    search.adicionar === 1 ||
+    search.adicionar === '1' ||
+    search.adicionar === true
+      ? { adicionar: true }
+      : {},
+  component: CardDetailsPage,
 })
 
 const profileRoute = createRoute({
@@ -80,6 +94,10 @@ const registerRoute = createRoute({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
+    typeof search.redirect === 'string' && isInternalPath(search.redirect)
+      ? { redirect: search.redirect }
+      : {},
   component: LoginPage,
 })
 
@@ -122,6 +140,7 @@ const routeTree = rootRoute.addChildren([
   siteLayoutRoute.addChildren([
     indexRoute,
     catalogRoute,
+    cardDetailsRoute,
     profileRoute,
     profileEditRoute,
     publicProfileRoute,

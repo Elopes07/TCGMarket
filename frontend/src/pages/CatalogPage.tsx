@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { CatalogCard } from '@/components/catalog/CatalogCard'
-import { AddToCollectionModal } from '@/components/catalog/AddToCollectionModal'
+import { CARD_TYPE_LABELS as typeLabels } from '@/components/catalog/cardDetailsFormat'
 import type {
-  CatalogCard as CatalogCardData,
   CatalogFilters,
   CatalogPage as CatalogPageData,
   CatalogSearch,
@@ -43,7 +42,6 @@ function CatalogView({ game }: { game: string }) {
   const [searchInput, setSearchInput] = useState(q ?? '')
   const [syncedQuery, setSyncedQuery] = useState(q)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [selectedCard, setSelectedCard] = useState<CatalogCardData | null>(null)
   const [filters, setFilters] = useState<CatalogFilters | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [result, setResult] = useState<{
@@ -404,11 +402,7 @@ function CatalogView({ game }: { game: string }) {
             ) : (
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
                 {data.content.map((card) => (
-                  <CatalogCard
-                    key={card.id}
-                    card={card}
-                    onSelect={setSelectedCard}
-                  />
+                  <CatalogCard key={card.id} card={card} />
                 ))}
               </div>
             )}
@@ -461,14 +455,6 @@ function CatalogView({ game }: { game: string }) {
           </section>
         </div>
       </div>
-
-      {selectedCard && (
-        <AddToCollectionModal
-          key={selectedCard.id}
-          card={selectedCard}
-          onClose={() => setSelectedCard(null)}
-        />
-      )}
     </main>
   )
 }

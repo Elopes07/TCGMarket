@@ -1,5 +1,6 @@
 package com.pitcc.service;
 
+import com.pitcc.dto.CatalogCardDetailsResponse;
 import com.pitcc.dto.CatalogCardResponse;
 import com.pitcc.dto.CatalogFiltersResponse;
 import com.pitcc.dto.CatalogPageResponse;
@@ -86,6 +87,14 @@ public class CatalogSearchService {
     CardGame selected = CatalogGameResolver.parse(game);
     return repository.findBySourceAndExternalId(CatalogGameResolver.source(selected), externalId.trim())
         .map(CatalogCardResponse::from).orElseThrow(CatalogCardNotFoundException::new);
+  }
+
+  public CatalogCardDetailsResponse findById(String id) {
+    Card card = repository.findById(id).orElseThrow(CatalogCardNotFoundException::new);
+    List<Card> otherPrintings = card.getConceptualId() == null ? List.of()
+        : repository.findTop20ByGameAndConceptualIdAndIdNotOrderByEditionAsc(
+            card.getGame(), card.getConceptualId(), card.getId());
+    return CatalogCardDetailsResponse.from(card, otherPrintings);
   }
 
   private List<String> distinct(Criteria filter, String field) {

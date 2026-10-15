@@ -573,6 +573,32 @@
       "settingEncodeUrl": true,
       "settingRebuildPath": true,
       "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_card_details",
+      "_type": "request",
+      "parentId": "fld_catalog",
+      "name": "Detalhes da carta",
+      "description": "Carta completa pelo id do catálogo interno (o campo id devolvido na busca), com os atributos do TCG e as outras impressões. Troque o id do exemplo.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/catalog/cards/000000000000000000000000",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 7,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
     }
   ]
 }

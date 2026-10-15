@@ -1,6 +1,7 @@
 import { api } from '@/services/api'
 import type {
   CatalogCard,
+  CatalogCardDetails,
   CatalogCardResponse,
   CatalogFilters,
   CatalogPage,
@@ -43,9 +44,18 @@ export async function fetchCatalogFilters(
   return response.data
 }
 
+export async function fetchCatalogCard(
+  id: string,
+): Promise<CatalogCardDetails> {
+  const response = await api.get<CatalogCardDetails>(
+    `/api/catalog/cards/${encodeURIComponent(id)}`,
+  )
+  return response.data
+}
+
 function toCatalogCard(card: CatalogCardResponse, game: string): CatalogCard {
   return {
-    id: `${card.cardGame}:${card.externalId}`,
+    id: card.id,
     name: card.name,
     game: game,
     edition: card.setName ?? '',

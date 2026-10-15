@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.pitcc.config.PermitAllSecurityConfig;
+import com.pitcc.dto.CatalogCardDetailsResponse;
 import com.pitcc.dto.CatalogCardResponse;
 import com.pitcc.dto.CatalogFiltersResponse;
 import com.pitcc.dto.CatalogPageResponse;
@@ -19,6 +20,10 @@ import com.pitcc.exception.InvalidCatalogRequestException;
 import com.pitcc.integration.catalog.ExternalApiErrorType;
 import com.pitcc.integration.catalog.ExternalApiException;
 import com.pitcc.model.CardGame;
+import com.pitcc.model.CardSource;
+import com.pitcc.model.PokemonCardType;
+import com.pitcc.model.PokemonEnergyType;
+import com.pitcc.model.PokemonEvolutionStage;
 import com.pitcc.service.CatalogSearchService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -42,6 +47,7 @@ class CatalogControllerTest {
         new CatalogSearchRequest("charizard", "Base", "Rare Holo", "POKEMON", 1, 10, "name-desc");
     when(catalogSearchService.search("pokemon", request))
         .thenReturn(CatalogPageResponse.of(List.of(new CatalogCardResponse(
+            "6650a1",
             "base1-4",
             null,
             "Charizard",
@@ -61,6 +67,7 @@ class CatalogControllerTest {
             .param("size", "10")
             .param("sort", "name-desc"))
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].id").value("6650a1"))
         .andExpect(jsonPath("$.content[0].externalId").value("base1-4"))
         .andExpect(jsonPath("$.content[0].name").value("Charizard"))
         .andExpect(jsonPath("$.content[0].cardGame").value("POKEMON"))
@@ -104,12 +111,46 @@ class CatalogControllerTest {
   void shouldReturnOneCardByExternalId() throws Exception {
     when(catalogSearchService.findByExternalId("magic", "alpha"))
         .thenReturn(new CatalogCardResponse(
-            "alpha", "oracle", "Black Lotus", CardGame.MAGIC_THE_GATHERING, null, "lea", "232", "rare", null));
+            "6650a2", "alpha", "oracle", "Black Lotus", CardGame.MAGIC_THE_GATHERING, null, "lea",
+            "232", "rare", null));
 
     mockMvc.perform(get("/api/catalog/magic/cards/by-external-id").param("externalId", "alpha"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.externalId").value("alpha"))
         .andExpect(jsonPath("$.name").value("Black Lotus"));
+  }
+
+  @Test
+  void shouldReturnTheDetailsOfOneCardByInternalId() throws Exception {
+    when(catalogSearchService.findById("6650a3"))
+        .thenReturn(new CatalogCardDetailsResponse(
+            "6650a3", "sv3pt5-25", null, "Pikachu", CardGame.POKEMON, "151", "sv3pt5", "025/165",
+            "Common", null, CardSource.POKEMON_TCG_API,
+            new CatalogCardDetailsResponse.PokemonDetails(
+                PokemonCardType.POKEMON, 60, List.of(PokemonEnergyType.LIGHTNING),
+                PokemonEvolutionStage.BASIC, 1,
+                List.of(new CatalogCardDetailsResponse.Attack(
+                    "Thunder Jolt", List.of(PokemonEnergyType.LIGHTNING), "30"))),
+            null, null, List.of()));
+
+    mockMvc.perform(get("/api/catalog/cards/6650a3"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value("6650a3"))
+        .andExpect(jsonPath("$.name").value("Pikachu"))
+        .andExpect(jsonPath("$.source").value("POKEMON_TCG_API"))
+        .andExpect(jsonPath("$.pokemon.hp").value(60))
+        .andExpect(jsonPath("$.pokemon.attacks[0].name").value("Thunder Jolt"))
+        .andExpect(jsonPath("$.yugioh").isEmpty())
+        .andExpect(jsonPath("$.otherPrintings").isEmpty());
+  }
+
+  @Test
+  void shouldAnswerNotFoundForAnUnknownInternalId() throws Exception {
+    when(catalogSearchService.findById("missing")).thenThrow(new CatalogCardNotFoundException());
+
+    mockMvc.perform(get("/api/catalog/cards/missing"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Nenhuma carta encontrada para esse identificador."));
   }
 
   @Test
