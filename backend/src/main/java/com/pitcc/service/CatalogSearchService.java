@@ -8,10 +8,12 @@ import com.pitcc.exception.CatalogCardNotFoundException;
 import com.pitcc.exception.InvalidCatalogRequestException;
 import com.pitcc.model.Card;
 import com.pitcc.model.CardGame;
+import com.pitcc.model.HiddenCard;
 import com.pitcc.model.MagicCardType;
 import com.pitcc.model.PokemonCardType;
 import com.pitcc.model.YugiohCardType;
 import com.pitcc.repository.CardRepository;
+import com.pitcc.repository.HiddenCardRepository;
 import com.pitcc.util.TextNormalizer;
 import java.util.Arrays;
 import java.util.List;
@@ -32,32 +34,34 @@ public class CatalogSearchService {
   private static final String COLLECTION = "cards";
 
   private final CardRepository repository;
+  private final HiddenCardRepository hiddenCards;
   private final MongoTemplate mongoTemplate;
 
-  public CatalogSearchService(CardRepository repository, MongoTemplate mongoTemplate) {
+  public CatalogSearchService(
+      CardRepository repository, HiddenCardRepository hiddenCards, MongoTemplate mongoTemplate) {
     this.repository = repository;
+    this.hiddenCards = hiddenCards;
     this.mongoTemplate = mongoTemplate;
   }
 
   public CatalogPageResponse<CatalogCardResponse> search(String game, CatalogSearchRequest request) {
     CardGame selected = CatalogGameResolver.parse(game);
-    int page = request.page() == null ? 0 : request.page();
-    int size = request.size() == null ? DEFAULT_PAGE_SIZE : request.size();
-    if (page < 0) {
-      throw new InvalidCatalogRequestException("A página deve ser maior ou igual a 0.");
+    PageRequest pageable = pageRequest(request.page(), request.size(), request.sort());
+    Criteria criteria =
+        criteria(selected, request.q(), request.set(), request.rarity(), request.type());
+
+    List<String> hidden = hiddenCards.findBySource(CatalogGameResolver.source(selected)).stream()
+        .map(HiddenCard::getExternalId).toList();
+    if (!hidden.isEmpty()) {
+      criteria.and("externalId").nin(hidden);
     }
-    if (size < 1 || size > MAX_PAGE_SIZE) {
-      throw new InvalidCatalogRequestException(
-          "O tamanho da página deve estar entre 1 e " + MAX_PAGE_SIZE + ".");
-    }
-    Sort sort = sort(request.sort());
-    Query query = new Query(criteria(selected, request));
+    Query query = new Query(criteria);
 
     long total = mongoTemplate.count(query, Card.class);
     List<CatalogCardResponse> content = total == 0 ? List.of()
-        : mongoTemplate.find(query.with(PageRequest.of(page, size, sort)), Card.class)
+        : mongoTemplate.find(query.with(pageable), Card.class)
             .stream().map(CatalogCardResponse::from).toList();
-    return CatalogPageResponse.of(content, page, size, total);
+    return CatalogPageResponse.of(content, pageable.getPageNumber(), pageable.getPageSize(), total);
   }
 
   public CatalogFiltersResponse filters(String game) {
@@ -74,6 +78,7 @@ public class CatalogSearchService {
     return new CatalogFiltersResponse(sets, rarities, types);
   }
 
+  /** Inclui cartas ocultas, que continuam válidas para coleções e anúncios que as referenciam. */
   public CatalogCardResponse findByExternalId(String game, String externalId) {
     if (externalId == null || externalId.isBlank()) {
       throw new InvalidCatalogRequestException("Informe o externalId.");
@@ -88,23 +93,43 @@ public class CatalogSearchService {
         .stream().filter(Objects::nonNull).sorted(String.CASE_INSENSITIVE_ORDER).toList();
   }
 
-  private static Criteria criteria(CardGame game, CatalogSearchRequest request) {
-    Criteria criteria = Criteria.where("game").is(game.name());
-    String name = TextNormalizer.normalizeOptionalText(request.q());
+  /** Valida página, tamanho e ordenação; {@code page} começa em 0. */
+  static PageRequest pageRequest(Integer page, Integer size, String sort) {
+    int number = page == null ? 0 : page;
+    int pageSize = size == null ? DEFAULT_PAGE_SIZE : size;
+    if (number < 0) {
+      throw new InvalidCatalogRequestException("A página deve ser maior ou igual a 0.");
+    }
+    if (pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
+      throw new InvalidCatalogRequestException(
+          "O tamanho da página deve estar entre 1 e " + MAX_PAGE_SIZE + ".");
+    }
+    return PageRequest.of(number, pageSize, sort(sort));
+  }
+
+  /** Sem {@code game}, pesquisa os três TCGs; o filtro por tipo exige um jogo. */
+  static Criteria criteria(CardGame game, String q, String set, String rarity, String type) {
+    Criteria criteria = game == null
+        ? Criteria.where("game").in(Arrays.stream(CardGame.values()).map(Enum::name).toList())
+        : Criteria.where("game").is(game.name());
+    String name = TextNormalizer.normalizeOptionalText(q);
     if (name != null) {
       criteria.and("name").regex(Pattern.quote(name), "i");
     }
-    String set = TextNormalizer.normalizeOptionalText(request.set());
-    if (set != null) {
-      criteria.and("edition").is(set);
+    String edition = TextNormalizer.normalizeOptionalText(set);
+    if (edition != null) {
+      criteria.and("edition").is(edition);
     }
-    String rarity = TextNormalizer.normalizeOptionalText(request.rarity());
-    if (rarity != null) {
-      criteria.and("officialRarity").is(rarity);
+    String officialRarity = TextNormalizer.normalizeOptionalText(rarity);
+    if (officialRarity != null) {
+      criteria.and("officialRarity").is(officialRarity);
     }
-    String type = TextNormalizer.normalizeOptionalText(request.type());
-    if (type != null) {
-      criteria.and(typeField(game)).is(type(game, type));
+    String cardType = TextNormalizer.normalizeOptionalText(type);
+    if (cardType != null) {
+      if (game == null) {
+        throw new InvalidCatalogRequestException("Selecione um TCG para filtrar por tipo.");
+      }
+      criteria.and(typeField(game)).is(type(game, cardType));
     }
     return criteria;
   }

@@ -1,6 +1,9 @@
+import { AdminLayout } from '@/components/admin/AdminLayout'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 import { SiteLayout } from '@/components/layout/SiteLayout'
-import { AdminPage } from '@/pages/AdminPage'
+import { AdminCatalogPage } from '@/pages/admin/AdminCatalogPage'
+import { AdminOverviewPage } from '@/pages/admin/AdminOverviewPage'
+import { AdminUsersPage } from '@/pages/admin/AdminUsersPage'
 import { DesignSystemPage } from '@/pages/DesignSystemPage'
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
@@ -10,6 +13,7 @@ import { ProfileEditPage } from '@/pages/ProfileEditPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { PublicProfilePage } from '@/pages/PublicProfilePage'
 import { NotFound, RootLayout } from '@/routes/RootLayout'
+import { parseAdminCatalogSearch } from '@/utils/adminCatalogSearch'
 import { parseCatalogSearch } from '@/utils/catalogSearch'
 import {
   createRootRoute,
@@ -80,13 +84,32 @@ const loginRoute = createRoute({
 })
 
 const adminRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => siteLayoutRoute,
   path: '/admin',
   component: () => (
     <RequireAuth role="ADMIN">
-      <AdminPage />
+      <AdminLayout />
     </RequireAuth>
   ),
+})
+
+const adminOverviewRoute = createRoute({
+  getParentRoute: () => adminRoute,
+  path: '/',
+  component: AdminOverviewPage,
+})
+
+const adminUsersRoute = createRoute({
+  getParentRoute: () => adminRoute,
+  path: 'usuarios',
+  component: AdminUsersPage,
+})
+
+const adminCatalogRoute = createRoute({
+  getParentRoute: () => adminRoute,
+  path: 'catalogo',
+  validateSearch: parseAdminCatalogSearch,
+  component: AdminCatalogPage,
 })
 
 const designSystemRoute = createRoute({
@@ -102,10 +125,14 @@ const routeTree = rootRoute.addChildren([
     profileRoute,
     profileEditRoute,
     publicProfileRoute,
+    adminRoute.addChildren([
+      adminOverviewRoute,
+      adminUsersRoute,
+      adminCatalogRoute,
+    ]),
   ]),
   registerRoute,
   loginRoute,
-  adminRoute,
   designSystemRoute,
 ])
 

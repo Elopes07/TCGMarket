@@ -2,6 +2,7 @@ package com.pitcc.exception;
 
 import com.pitcc.dto.ApiErrorResponse;
 import com.pitcc.dto.ApiErrorResponse.FieldErrorResponse;
+import com.pitcc.dto.HideCardRequest;
 import com.pitcc.dto.LoginRequest;
 import com.pitcc.dto.UpdateProfileRequest;
 import com.pitcc.dto.UpdateUserRoleRequest;
@@ -38,6 +39,7 @@ public class GlobalExceptionHandler {
           case LoginRequest _ -> "Dados de login inválidos.";
           case UpdateUserRoleRequest _ -> "Perfil inválido.";
           case UpdateProfileRequest _ -> "Dados do perfil inválidos.";
+          case HideCardRequest _ -> "Motivo inválido.";
           case null, default -> "Dados de cadastro inválidos.";
         };
     return ResponseEntity.badRequest().body(error(HttpStatus.BAD_REQUEST, message, fields));

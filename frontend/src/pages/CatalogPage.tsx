@@ -9,6 +9,8 @@ import type {
   CatalogSearch,
 } from '@/types/Catalog'
 import { fetchCatalogFilters, searchCatalogCards } from '@/services/catalogApi'
+import { typeLabels } from '@/components/catalog/catalogLabels'
+import { pageItems } from '@/utils/pagination'
 
 const gameNames: Record<string, string> = {
   pokemon: 'Pokémon',
@@ -19,24 +21,6 @@ const gameNames: Record<string, string> = {
 }
 
 const supportedGames = ['pokemon', 'magic', 'yugioh']
-
-const typeLabels: Record<string, string> = {
-  POKEMON: 'Pokémon',
-  TRAINER: 'Treinador',
-  ENERGY: 'Energia',
-  MONSTER: 'Monstro',
-  SPELL: 'Magia',
-  TRAP: 'Armadilha',
-  LAND: 'Terreno',
-  CREATURE: 'Criatura',
-  ARTIFACT: 'Artefato',
-  ENCHANTMENT: 'Encantamento',
-  PLANESWALKER: 'Planeswalker',
-  BATTLE: 'Batalha',
-  INSTANT: 'Mágica instantânea',
-  SORCERY: 'Feitiço',
-  KINDRED: 'Kindred',
-}
 
 const futureFilters = ['Idioma', 'Condição', 'Preço', 'Disponibilidade']
 
@@ -565,17 +549,4 @@ function withSelected(options: Option[], selected: string | undefined) {
   if (!selected || options.some((item) => item.value === selected))
     return options
   return [{ value: selected, label: selected }, ...options]
-}
-
-function pageItems(current: number, total: number): (number | 'gap')[] {
-  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1)
-  const pages = [1, current - 1, current, current + 1, total]
-    .filter((number) => number >= 1 && number <= total)
-    .filter((number, index, list) => list.indexOf(number) === index)
-    .sort((a, b) => a - b)
-  return pages.flatMap((number, index) =>
-    index > 0 && number - pages[index - 1] > 1
-      ? (['gap', number] as const)
-      : [number],
-  )
 }
