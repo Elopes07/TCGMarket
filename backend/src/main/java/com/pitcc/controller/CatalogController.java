@@ -1,5 +1,6 @@
 package com.pitcc.controller;
 
+import com.pitcc.dto.CatalogCardDetailsResponse;
 import com.pitcc.dto.CatalogCardResponse;
 import com.pitcc.dto.CatalogFiltersResponse;
 import com.pitcc.dto.CatalogPageResponse;
@@ -38,6 +39,11 @@ public class CatalogController {
   @GetMapping("/{game}/filters")
   public CatalogFiltersResponse filters(@PathVariable String game) {
     return catalogSearchService.filters(game);
+  }
+
+  @GetMapping("/cards/{id}")
+  public CatalogCardDetailsResponse findById(@PathVariable String id) {
+    return catalogSearchService.findById(id);
   }
 
   @GetMapping("/{game}/cards/by-external-id")

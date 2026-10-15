@@ -1,23 +1,22 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import type { CatalogCard as CatalogCardData } from '@/types/Catalog'
 
 type CatalogCardProps = {
   card: CatalogCardData
-  onSelect: (card: CatalogCardData) => void
 }
 
-export function CatalogCard({ card, onSelect }: CatalogCardProps) {
+export function CatalogCard({ card }: CatalogCardProps) {
   const [imageFailed, setImageFailed] = useState(false)
 
   return (
     <Card interactive className="group h-full">
-      <button
-        type="button"
-        onClick={() => onSelect(card)}
+      <Link
+        to="/cartas/$id"
+        params={{ id: card.id }}
         className="flex h-full w-full cursor-pointer flex-col text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-secondary-500"
-        aria-label={`Adicionar ${card.name} à minha coleção`}
       >
         <div className="relative flex aspect-[4/5] items-center justify-center overflow-hidden bg-neutral-50 p-3">
           {card.imageUrl && !imageFailed ? (
@@ -57,7 +56,7 @@ export function CatalogCard({ card, onSelect }: CatalogCardProps) {
             </Badge>
           </div>
         </div>
-      </button>
+      </Link>
     </Card>
   )
 }

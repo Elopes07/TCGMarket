@@ -5,14 +5,22 @@ import com.pitcc.util.TextNormalizer;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 
 
 @Document(collection = "cards")
-@CompoundIndex(
-        name = "source_external_id_unique",
-        def = "{'source': 1, 'externalId': 1}",
-        unique = true
-)
+@CompoundIndexes({
+        @CompoundIndex(
+                name = "source_external_id_unique",
+                def = "{'source': 1, 'externalId': 1}",
+                unique = true
+        ),
+        // Outras impressões da mesma carta na tela de detalhes.
+        @CompoundIndex(
+                name = "game_conceptual_id",
+                def = "{'game': 1, 'conceptualId': 1}"
+        )
+})
 public abstract class Card {
 
     @Id

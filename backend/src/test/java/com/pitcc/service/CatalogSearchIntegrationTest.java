@@ -75,6 +75,35 @@ class CatalogSearchIntegrationTest {
     assertTrue(magic.types().containsAll(List.of("ARTIFACT", "CREATURE")));
   }
 
+  @Test void shouldReturnTheStoredCardWithItsOtherPrintings() {
+    MagicCard alpha = magic("Alpha " + run, "alpha-" + run);
+    MagicCard beta = magic("Beta " + run, "beta-" + run);
+    MagicCard unrelated = new MagicCard("Lotus " + run, "Alpha " + run, "mtg-" + run, "2", "rare", null,
+        "lotus-" + run, "{0}", 0.0, List.of(), List.of(MagicCardType.ARTIFACT), null, null,
+        List.of(), List.of(), null);
+    unrelated.setConceptualId("lotus-" + run);
+    save(unrelated);
+
+    var details = service.findById(alpha.getId());
+
+    assertEquals("Bear " + run, details.name());
+    assertEquals("2", details.magic().power());
+    assertEquals(List.of(beta.getId()),
+        details.otherPrintings().stream().map(p -> p.id()).toList());
+    assertEquals(alpha.getId(), service.search("magic",
+        new CatalogSearchRequest(null, "Alpha " + run, null, null, null, null, null)).content().stream()
+        .filter(card -> card.externalId().equals(alpha.getExternalId())).findFirst().orElseThrow().id());
+  }
+
+  private MagicCard magic(String set, String externalId) {
+    MagicCard card = new MagicCard("Bear " + run, set, "mtg-" + run, "1", "common", null, externalId,
+        "{1}{G}", 2.0, List.of(MagicColor.GREEN), List.of(MagicCardType.CREATURE), "2", "2",
+        List.of(), List.of(), null);
+    card.setConceptualId("bear-" + run);
+    save(card);
+    return card;
+  }
+
   private List<CatalogCardResponse> search(String game, String q, String set, String rarity,
       String type, Integer page, Integer size) {
     return service.search(game, new CatalogSearchRequest(q, set, rarity, type, page, size, null)).content();

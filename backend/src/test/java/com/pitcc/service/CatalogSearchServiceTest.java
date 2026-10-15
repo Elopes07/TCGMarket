@@ -146,6 +146,53 @@ class CatalogSearchServiceTest {
     verify(repository).findBySourceAndExternalId(CardSource.YGOPRODECK, "missing");
   }
 
+  @Test void shouldReturnTheDetailsOfAPokemonCardWithoutLookingForOtherPrintings() {
+    Card card = new PokemonCard("Pikachu", "151", "sv3pt5", "025/165", "Common", null, "sv3pt5-25",
+        60, PokemonCardType.POKEMON, List.of(PokemonEnergyType.LIGHTNING), PokemonEvolutionStage.BASIC, 1,
+        List.of(new PokemonAttack("Thunder Jolt", List.of(PokemonEnergyType.LIGHTNING), "30")));
+    when(repository.findById("card-1")).thenReturn(Optional.of(card));
+
+    var result = service.findById("card-1");
+
+    assertEquals("Pikachu", result.name());
+    assertEquals(CardGame.POKEMON, result.cardGame());
+    assertEquals("151", result.setName());
+    assertEquals("sv3pt5", result.setCode());
+    assertEquals(CardSource.POKEMON_TCG_API, result.source());
+    assertEquals(60, result.pokemon().hp());
+    assertEquals(1, result.pokemon().retreatCost());
+    assertEquals("Thunder Jolt", result.pokemon().attacks().getFirst().name());
+    assertNull(result.yugioh());
+    assertNull(result.magic());
+    assertTrue(result.otherPrintings().isEmpty());
+    verify(repository, never()).findTop20ByGameAndConceptualIdAndIdNotOrderByEditionAsc(any(), any(), any());
+  }
+
+  @Test void shouldListTheOtherPrintingsOfTheSameConceptualCard() {
+    Card card = new YugiohCard("Dark Magician", "Legend of Blue Eyes", "LOB", "LOB-005", "Ultra Rare",
+        null, "46986414-LOB-005", 2500, 2100, 7, null, null, YugiohAttribute.DARK, "Spellcaster",
+        YugiohCardType.MONSTER, List.of(YugiohInvocation.NORMAL));
+    card.setConceptualId("46986414");
+    Card other = new YugiohCard("Dark Magician", "Starter Deck: Yugi", "SDY", "SDY-006", "Ultra Rare",
+        null, "46986414-SDY-006", 2500, 2100, 7, null, null, YugiohAttribute.DARK, "Spellcaster",
+        YugiohCardType.MONSTER, List.of(YugiohInvocation.NORMAL));
+    when(repository.findById("card-2")).thenReturn(Optional.of(card));
+    when(repository.findTop20ByGameAndConceptualIdAndIdNotOrderByEditionAsc(CardGame.YUGIOH, "46986414", null))
+        .thenReturn(List.of(other));
+
+    var result = service.findById("card-2");
+
+    assertEquals(2500, result.yugioh().atk());
+    assertEquals(YugiohAttribute.DARK, result.yugioh().attribute());
+    assertEquals(List.of("Starter Deck: Yugi"),
+        result.otherPrintings().stream().map(p -> p.setName()).toList());
+  }
+
+  @Test void shouldFailWhenTheInternalIdDoesNotExist() {
+    when(repository.findById("missing")).thenReturn(Optional.empty());
+    assertThrows(CatalogCardNotFoundException.class, () -> service.findById("missing"));
+  }
+
   @Test void shouldRejectInvalidLookupsBeforeQueryingTheDatabase() {
     assertThrows(InvalidCatalogRequestException.class, () -> service.findByExternalId("pokemon", " "));
     assertThrows(InvalidCatalogRequestException.class, () -> service.filters("digimon"));

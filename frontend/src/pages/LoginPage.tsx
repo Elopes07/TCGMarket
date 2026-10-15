@@ -4,7 +4,7 @@ import { Alert } from '@/components/ui/Alert'
 import { login as loginRequest } from '@/services/authApi'
 import { useSession } from '@/session'
 import type { ApiErrorResponse } from '@/types/User'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouter, useSearch } from '@tanstack/react-router'
 import axios from 'axios'
 import {
   type FormEvent,
@@ -19,6 +19,8 @@ const FUTURE_PASSWORD = 'A recuperação de senha será implementada no futuro.'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const router = useRouter()
+  const { redirect } = useSearch({ from: '/login' })
   const { login, loginNotice, setLoginNotice, user } = useSession()
   const stickyNotice = useRef(loginNotice)
   const [email, setEmail] = useState('')
@@ -38,10 +40,15 @@ export function LoginPage() {
   }, [loginNotice, setLoginNotice])
 
   useEffect(() => {
-    if (user) {
+    if (!user) {
+      return
+    }
+    if (redirect) {
+      router.history.replace(redirect)
+    } else {
       navigate({ to: '/' })
     }
-  }, [navigate, user])
+  }, [navigate, redirect, router, user])
 
   useEffect(() => {
     if (!notice || notice === stickyNotice.current) {
@@ -92,7 +99,6 @@ export function LoginPage() {
         password,
       })
       login(session)
-      navigate({ to: '/' })
     } catch (error) {
       setFeedback(loginErrorMessage(error))
     } finally {
